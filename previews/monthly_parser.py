@@ -95,9 +95,11 @@ class MonthlyParser(Parser):
             model = self.model.objects.create(**params)
 
             params['id'] = model.id
-            params['release_date'] = self.release_date.strftime('%Y-%m-%d')
+
+            del params['release_date']
 
             model.cover_list = cover_list
+            model.save()
 
             params['cover_list'] = cover_list
 
