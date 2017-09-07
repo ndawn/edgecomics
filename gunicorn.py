@@ -8,8 +8,8 @@ curdir = os.path.realpath('.')
 
 bind = 'unix:/tmp/edgecomics.sock'
 
-workers = 3
-timeout = 7200
+workers = 5
+timeout = 120
 preload = True
 daemon = True
 pidfile = '/tmp/edgecomics.pid'
