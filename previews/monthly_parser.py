@@ -93,17 +93,10 @@ class MonthlyParser(Parser):
             cover_list = {k: v % cover_name for (k, v) in self.cover_urls.items()}
 
             model = self.model.objects.create(**params)
-
-            params['id'] = model.id
-
-            del params['release_date']
-
             model.cover_list = cover_list
             model.save()
 
-            params['cover_list'] = cover_list
-
-            self.parsed.append(params)
+            self.parsed.append(model.id)
 
     def parse(self):
         self._make_soup()
