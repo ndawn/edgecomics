@@ -63,13 +63,13 @@ class MonthlyParser(Parser):
                            .find_all('div', {'class': 'nrGalleryItem'})
 
         for entry in entries:
-            params = {}
-
-            params['title'] = entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')
-            params['publisher'] = publisher['full_name']
-            params['quantity'] = None
-            params['diamond_id'] = entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text
-            params['release_date'] = self.release_date
+            params = {
+                'title': entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' '),
+                'publisher': publisher['full_name'],
+                'quantity': None,
+                'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
+                'release_date': self.release_date,
+            }
 
             price_origin = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')
 
@@ -138,7 +138,7 @@ class MonthlyParser(Parser):
             dummy_cover = open(os.path.join(MEDIA_ROOT, 'previews/dummy_prwld.png'), 'rb')
             dirs_path = os.path.join(MEDIA_ROOT, 'previews')
             download_path = os.path.join(dirs_path, '%s/%s')
-            downloaded_url = os.path.join(SITE_ADDRESS, MEDIA_ROOT, 'previews/%s/%s')
+            downloaded_url = os.path.join(SITE_ADDRESS, 'media/previews/%s/%s')
 
             if isinstance(self.model.cover_list, str):
                 self.model.cover_list = json.loads(self.model.cover_list)
