@@ -46,8 +46,11 @@ class ParserView(View):
 
         parser = globals()[mode + 'Parser'].OneParser(globals()[mode].objects.get(id=request.GET.get('id')))
 
+        parser.load_description()
+        cover_list = parser.download_covers()
+
         return HttpResponse(
-            json.dumps({'cover_list': parser.download_covers()}, separators=[',', ':']),
+            json.dumps({'cover_list': cover_list}, separators=[',', ':']),
             content_type='application/json'
         )
 
