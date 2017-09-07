@@ -90,10 +90,16 @@ class MonthlyParser(Parser):
 
             cover_element = entry.find('div', {'class': 'nrGalleryItemImage'}).a.img
             cover_name = os.path.basename(cover_element.get('data-src', cover_element.get('src')))
+            cover_list = {k: v % cover_name for (k, v) in self.cover_urls.items()}
 
-            params['cover_list'] = {k: v % cover_name for (k, v) in self.cover_urls.items()}
-            params['id'] = self.model.objects.create(**params).id
+            model = self.model.objects.create(**params)
+
+            params['id'] = model.id
             params['release_date'] = self.release_date.strftime('%Y-%m-%d')
+
+            model.cover_list = cover_list
+
+            params['cover_list'] = cover_list
 
             self.parsed.append(params)
 
