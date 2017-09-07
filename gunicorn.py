@@ -8,7 +8,7 @@ curdir = os.path.realpath('.')
 
 bind = 'unix:/tmp/edgecomics.sock'
 
-workers = 5
+workers = 3
 timeout = 7200
 preload = True
 daemon = True
