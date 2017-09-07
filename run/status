@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -f /tmp/edgecomics.pid ]; then
+	echo -e 'Gunicorn is \033[1;32mrunning'
+else
+	echo -e 'Gunicorn is \033[0mstopped'
+fi
