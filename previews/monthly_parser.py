@@ -25,7 +25,7 @@ class MonthlyParser(Parser):
     soup = None
     cover_urls = {
         'full': 'https://previewsworld.com/siteimage/catalogimage/%s?type=1',
-        # 'thumb': 'https://previewsworld.com/siteimage/catalogthumbnail/%s?type=1',
+        'thumb': 'https://previewsworld.com/siteimage/catalogthumbnail/%s?type=1',
     }
     model = Monthly
 
