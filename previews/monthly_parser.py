@@ -136,10 +136,7 @@ class MonthlyParser(Parser):
                 self.model.cover_list = json.loads(self.model.cover_list)
 
             for item in self.model.cover_list.items():
-                filename = os.path.basename(item[1]).split('?', 1)[0]
-
-                if not filename.endswith('.jpg'):
-                    filename += '.jpg'
+                filename = item[0] + '.jpg'
 
                 image_response = requests.get(item[1], stream=True)
                 image = image_response.raw.read()
