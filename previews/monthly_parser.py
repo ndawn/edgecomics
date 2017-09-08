@@ -111,8 +111,10 @@ class MonthlyParser(Parser):
         def __init__(self, model):
             self.model = model
 
+        description_url = 'https://previewsworld.com/catalog/preview/%s'
+
         def load_description(self):
-            description_page = requests.get('https://previewsworld.com' + self.model.description)
+            description_page = requests.get(self.description_url % self.model.diamond_id)
             description_soup = BeautifulSoup(description_page.text, 'lxml')
 
             print(description_soup.prettify())
