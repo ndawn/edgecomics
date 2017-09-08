@@ -115,10 +115,9 @@ class MonthlyParser(Parser):
             description_page = requests.get('https://previewsworld.com' + self.model.description)
             description_soup = BeautifulSoup(description_page.text, 'lxml')
 
-            self.model.description = ''.join(description_soup.find('div', {'class': 'PreviewText'})
-                                                             .find_all(text=True, recursive=False)) \
-                                       .strip() \
-                                       .replace('\xa0', ' ')
+            print(description_soup.prettify())
+
+            self.model.description = ''.join(description_soup.find('div', {'class': 'PreviewText'}).find_all(text=True, recursive=False)).strip().replace('\xa0', ' ')
 
             self.model.save()
 
