@@ -9,7 +9,7 @@ let parser = (() => {
     let queueLength = null;
     let threads = 5;
     let done = false;
-    let dummy = true;
+    let dummy = false;
 
 
     let coversDownloadPoll = () => {
