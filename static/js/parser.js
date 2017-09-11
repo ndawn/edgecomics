@@ -43,6 +43,7 @@ let parser = (() => {
 
                 parserControls.enableLoader();
                 parserControls.setLoadState('done');
+                console.log(releaseDate);
                 parserControls.setPriceLink(mode, releaseDate);
 
             }
@@ -69,8 +70,6 @@ let parser = (() => {
                 queue = response.entry_list;
                 queueLength = queue.length;
                 releaseDate = response.release_date;
-                console.log(releaseDate);
-                console.log(response);
 
                 parserControls.updateProgress(0, 1);
 

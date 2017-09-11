@@ -96,6 +96,8 @@ let parserControls = (() => {
 
         let xhr = new XMLHttpRequest();
 
+        console.log(releaseDate);
+
         xhr.open('GET', '/previews/price?mode=' + mode + '&release_date=' + releaseDate);
 
         xhr.onreadystatechange = () => {
