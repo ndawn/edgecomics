@@ -107,11 +107,13 @@ let parserControls = (() => {
 
             if (xhr.status == 200 && xhr.readyState == 4) {
 
-                priceButton.href = JSON.parse(xhr.responseText).link;
+                priceButton.href = JSON.parse(xhr.responseText).url;
 
             }
 
         };
+
+        xhr.send();
 
     };
 
