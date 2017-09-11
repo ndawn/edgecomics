@@ -84,7 +84,7 @@ let parser = (() => {
 
     let startDownloadPoll = () => {
 
-        if (dummy) {
+        if (!dummy) {
 
             parserControls.enableItem();
 
