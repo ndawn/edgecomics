@@ -150,39 +150,11 @@ body {
     color : white;
 }
 
-.container__item {
-    width : 100%;
-    flex-direction : row;
-    flex-wrap : wrap;
-    justify-content : space-between;
-}
-
-.sup-item {
-    flex-basis : 500px;
-    text-align : center;
-}
-
-.item {
-    display : flex;
-    flex-direction : column;
-    align-items : center;
-    justify-content : center;
-}
-
 .item__cover {
     height : 150px;
 }
 
 .item__title {
-    width : 120px;
     text-align : center;
     font-size : 0.85rem;
-}
-
-.item__cover--prev {
-    height : 120px;
-}
-
-.item__title--prev {
-    font-size : 0.7rem;
 }

@@ -13,8 +13,6 @@ let parserControls = (() => {
     let loadingAnimation = document.getElementById('loading_animation');
     let doneMarker = document.getElementById('done_marker');
     let priceButton = document.getElementById('price');
-    let prevItemCover = document.getElementById('prev_item_cover');
-    let prevItemTitle = document.getElementById('prev_item_title');
     let itemCover = document.getElementById('item_cover');
     let itemTitle = document.getElementById('item_title');
 
@@ -81,9 +79,6 @@ let parserControls = (() => {
 
     let fillItem = params => {
 
-        prevItemCover.src = itemCover.src;
-        prevItemTitle.textContent = itemTitle.textContent;
-
         itemCover.src = params.cover;
         itemTitle.textContent = params.title;
 
@@ -132,8 +127,6 @@ let parserControls = (() => {
         loadingAnimation,
         doneMarker,
         priceButton,
-        prevItemCover,
-        prevItemTitle,
         itemCover,
         itemTitle,
 

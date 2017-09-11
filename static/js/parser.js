@@ -8,6 +8,7 @@ let parser = (() => {
     let queue = null;
     let queueLength = null;
     let threads = 5;
+    let done = false;
 
 
     let coversDownloadPoll = () => {
@@ -36,9 +37,15 @@ let parser = (() => {
 
         } else {
 
-            parserControls.enableLoader();
-            parserControls.setLoadState('done');
-            parserControls.setPriceLink(mode, releaseDate);
+            if (!done) {
+
+                done = true;
+
+                parserControls.enableLoader();
+                parserControls.setLoadState('done');
+                parserControls.setPriceLink(mode, releaseDate);
+
+            }
 
         }
 
@@ -62,6 +69,8 @@ let parser = (() => {
                 queue = response.entry_list;
                 queueLength = queue.length;
                 releaseDate = response.release_date;
+                console.log(releaseDate);
+                console.log(response);
 
                 parserControls.updateProgress(0, 1);
 

@@ -126,7 +126,7 @@ class MonthlyParser(Parser):
             return self.model.description
 
         def download_covers(self):
-            dummy_url = os.path.join(SITE_ADDRESS, 'media/dummy.jpg')
+            dummy_url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
             dummy_cover = open(os.path.join(MEDIA_ROOT, 'previews/dummy_prwld.png'), 'rb')
             dirs_path = os.path.join(MEDIA_ROOT, 'previews')
             download_path = os.path.join(dirs_path, '%s/%s')
