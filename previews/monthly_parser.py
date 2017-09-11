@@ -104,6 +104,8 @@ class MonthlyParser(Parser):
         if self.release_date is None:
             self._date_from_soup()
 
+        self._delete_old()
+
         for publisher in self.publishers:
             self._parse_by_publisher(publisher)
 
