@@ -1,4 +1,4 @@
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.views import View
 from edgecomics.config import SITE_ADDRESS
@@ -24,7 +24,7 @@ class ParserView(View):
             if hasattr(self, method):
                 return getattr(self, method)(request)
             else:
-                return HttpResponse('No such method')
+                return HttpResponseBadRequest()
 
     def parse(self, request: HttpRequest) -> HttpResponse:
         try:
@@ -34,13 +34,14 @@ class ParserView(View):
 
         parser.parse()
 
-        return HttpResponse(json.dumps({'entry_list': parser.parsed}), content_type='application/json')
+        return HttpResponse(json.dumps({'entry_list': parser.parsed,
+                                        'release_date': parser.release_date.strftime('%Y-%m-%d')}), content_type='application/json')
 
     def postparse(self, request: HttpRequest) -> HttpResponse:
         mode = request.GET.get('mode')
 
         if mode is None:
-            return HttpResponse(json.dumps({'error': 'no mode specified'}), content_type='application/json')
+            return HttpResponseBadRequest(json.dumps({'error': 'no mode specified'}), content_type='application/json')
 
         mode = mode.capitalize()
 
@@ -50,7 +51,8 @@ class ParserView(View):
         cover_list = parser.download_covers()
 
         return HttpResponse(
-            json.dumps({'cover_list': cover_list}, separators=[',', ':']),
+            json.dumps({'cover': cover_list['thumb'],
+                        'title': parser.model.title}, separators=[',', ':']),
             content_type='application/json'
         )
 
@@ -62,4 +64,4 @@ class ParserView(View):
 
         path = xls.generate()
 
-        return HttpResponse(json.dumps({'path': SITE_ADDRESS + path}), content_type='application/json')
+        return HttpResponse(json.dumps({'url': SITE_ADDRESS + path}), content_type='application/json')

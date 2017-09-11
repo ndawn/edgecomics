@@ -96,6 +96,8 @@ class MonthlyParser(Parser):
             model.cover_list = cover_list
             model.save()
 
+            print(model.id)
+
             self.parsed.append(model.id)
 
     def parse(self):
