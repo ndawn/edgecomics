@@ -51,13 +51,13 @@ let parser = (() => {
     };
 
 
-    let startParse = (mode, releaseDate) => {
+    let startParse = (mode, relDate) => {
 
         let xhr = new XMLHttpRequest();
 
         parserControls.setLoadState('counting');
 
-        xhr.open('GET', '/previews/parse?mode=' + mode + (releaseDate ? '&release_date=' + releaseDate : ''));
+        xhr.open('GET', '/previews/parse?mode=' + mode + (relDate ? '&release_date=' + relDate : ''));
 
         xhr.onreadystatechange = () => {
 
