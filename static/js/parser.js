@@ -9,6 +9,7 @@ let parser = (() => {
     let queueLength = null;
     let threads = 5;
     let done = false;
+    let dummy = true;
 
 
     let coversDownloadPoll = () => {
@@ -41,10 +42,7 @@ let parser = (() => {
 
                 done = true;
 
-                parserControls.enableLoader();
-                parserControls.setLoadState('done');
-                console.log(releaseDate);
-                parserControls.setPriceLink(mode, releaseDate);
+                getPrice();
 
             }
 
@@ -86,13 +84,31 @@ let parser = (() => {
 
     let startDownloadPoll = () => {
 
-        parserControls.enableItem();
+        if (dummy) {
 
-        for (let i = 0; i < threads; i++) {
+            parserControls.enableItem();
 
-            coversDownloadPoll();
+            for (let i = 0; i < threads; i++) {
+
+                coversDownloadPoll();
+
+            }
+
+        } else {
+
+            getPrice();
 
         }
+
+    };
+
+
+    let getPrice = () => {
+
+        parserControls.enableLoader();
+        parserControls.setLoadState('done');
+        console.log(releaseDate);
+        parserControls.setPriceLink(mode, releaseDate);
 
     };
 
