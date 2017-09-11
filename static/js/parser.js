@@ -6,6 +6,7 @@ let parser = (() => {
     let mode = null;
     let releaseDate = null;
     let queue = null;
+    let queueLength = null;
     let threads = 5;
 
 
@@ -23,6 +24,7 @@ let parser = (() => {
                 if (xhr.status == 200 && xhr.readyState == 4) {
 
                     parserControls.fillItem(JSON.parse(xhr.responseText));
+                    parserControls.updateProgress(queueLength - queue.length, queueLength);
 
                     coversDownloadPoll();
 
@@ -45,8 +47,6 @@ let parser = (() => {
 
     let startParse = (mode, releaseDate) => {
 
-        console.log('Starting parse');
-
         let xhr = new XMLHttpRequest();
 
         parserControls.setLoadState('counting');
@@ -60,9 +60,10 @@ let parser = (() => {
                 let response = JSON.parse(xhr.responseText);
 
                 queue = response.entry_list;
+                queueLength = queue.length;
                 releaseDate = response.release_date;
 
-                parserControls.updateProgress(0, queue.length);
+                parserControls.updateProgress(0, 1);
 
                 startDownloadPoll();
 

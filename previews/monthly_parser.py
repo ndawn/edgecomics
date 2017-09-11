@@ -96,8 +96,6 @@ class MonthlyParser(Parser):
             model.cover_list = cover_list
             model.save()
 
-            print(model.id)
-
             self.parsed.append(model.id)
 
     def parse(self):
@@ -118,8 +116,6 @@ class MonthlyParser(Parser):
         def load_description(self):
             description_page = requests.get(self.description_url % self.model.diamond_id)
             description_soup = BeautifulSoup(description_page.text, 'lxml')
-
-            print(description_soup.prettify())
 
             self.model.description = ''.join(description_soup.find('div', {'class': 'PreviewText'}).find_all(text=True, recursive=False)).strip().replace('\xa0', ' ')
 
