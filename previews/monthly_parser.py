@@ -15,10 +15,8 @@ class MonthlyParser(Parser):
         super().__init__(*args, **kwargs)
 
         self._convert_date()
-        self._delete_old()
 
     parse_url = 'https://previewsworld.com/catalog'
-    parse_engine = 'lxml'
     publishers = PUBLISHERS
     release_date_batch = ''
     page = None
@@ -109,15 +107,17 @@ class MonthlyParser(Parser):
         for publisher in self.publishers:
             self._parse_by_publisher(publisher)
 
-    class OneParser:
+    class OneParser(Parser.OneParser):
         def __init__(self, model):
+            super().__init__()
+
             self.model = model
 
         description_url = 'https://previewsworld.com/catalog/preview/%s'
 
         def load_description(self):
             description_page = requests.get(self.description_url % self.model.diamond_id)
-            description_soup = BeautifulSoup(description_page.text, 'lxml')
+            description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
             self.model.description = ''.join(description_soup.find('div', {'class': 'PreviewText'}).find_all(text=True, recursive=False)).strip().replace('\xa0', ' ')
 

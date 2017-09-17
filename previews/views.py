@@ -30,12 +30,17 @@ class ParserView(View):
         try:
             parser = globals()[request.GET.get('mode').capitalize() + 'Parser'](request.GET.get('release_date', None))
         except KeyError:
-            return HttpResponse(json.dumps({'error': 'wrong mode: %s' % request.GET.get('mode')}), content_type='application/json')
+            return HttpResponse(
+                json.dumps({'error': 'wrong mode: %s' % request.GET.get('mode')}),
+                content_type='application/json',
+            )
 
         parser.parse()
 
-        return HttpResponse(json.dumps({'entry_list': parser.parsed,
-                                        'release_date': parser.release_date.strftime('%Y-%m-%d')}), content_type='application/json')
+        return HttpResponse(
+            json.dumps({'entry_list': parser.parsed, 'release_date': parser.release_date.strftime('%Y-%m-%d')}),
+            content_type='application/json',
+        )
 
     def postparse(self, request: HttpRequest) -> HttpResponse:
         mode = request.GET.get('mode')

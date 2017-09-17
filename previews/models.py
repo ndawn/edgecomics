@@ -477,7 +477,7 @@ class Preview(Item):
 class Monthly(Preview):
     discount_superior = models.FloatField(
         default=1.0,
-        verbose_name='Множитель скидки discount_superior',
+        verbose_name='Множитель скидки superior',
     )
 
 
