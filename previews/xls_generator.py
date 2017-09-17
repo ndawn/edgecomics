@@ -112,6 +112,9 @@ class XLSGenerator(xlwt.Workbook):
             if isinstance(entry.cover_list, str):
                 entry.cover_list = json.loads(entry.cover_list)
 
+                if isinstance(entry.cover_list, str):
+                    entry.cover_list = json.loads(entry.cover_list)
+
             for col in range(len(self.titles)):
                 self._write_attr(sheet,
                                  entry,
