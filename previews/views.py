@@ -52,7 +52,7 @@ class ParserView(View):
 
         parser = globals()[mode + 'Parser'].OneParser(globals()[mode].objects.get(id=request.GET.get('id')))
 
-        parser.load_description()
+        parser.postload()
         cover_list = parser.download_covers()
 
         return HttpResponse(

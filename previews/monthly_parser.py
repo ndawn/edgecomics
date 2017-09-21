@@ -66,7 +66,6 @@ class MonthlyParser(Parser):
                 'publisher': publisher['full_name'],
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
-                'release_date': self.release_date,
             }
 
             price_origin = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')
@@ -113,13 +112,22 @@ class MonthlyParser(Parser):
 
             self.model = model
 
-        description_url = 'https://previewsworld.com/catalog/preview/%s'
+        description_url = 'https://previewsworld.com/catalog/%s'
 
-        def load_description(self):
+        def postload(self):
             description_page = requests.get(self.description_url % self.model.diamond_id)
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-            self.model.description = ''.join(description_soup.find('div', {'class': 'PreviewText'}).find_all(text=True, recursive=False)).strip().replace('\xa0', ' ')
+            text_container = description_soup.find('div', {'class': 'Text'})
+
+            text_container.find('div', {'class': 'ItemCode'}).decompose()
+            text_container.find('div', {'class': 'Creators'}).decompose()
+            text_container.find('div', {'class': 'SRP'}).decompose()
+
+            release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
+
+            self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
+            self.model.description = text_container.text.strip()
 
             self.model.save()
 
