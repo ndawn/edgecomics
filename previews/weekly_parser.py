@@ -7,6 +7,7 @@ import os.path
 import datetime
 import requests
 from bs4 import BeautifulSoup
+import demjson
 import json
 
 
@@ -43,12 +44,7 @@ class WeeklyParser(Parser):
 
     @staticmethod
     def _convert_response(response):
-        response = response.replace('\t', '"') \
-                           .replace(':', '":') \
-                           .replace(',}', '}') \
-                           .replace(',]', ']')
-
-        return json.loads(response)
+        return demjson.decode(response)
 
     def _request_entries(self, publisher):
         raw = requests.get(self.parse_url, {'cat': publisher['midtown_code'], 'wdate': self.release_date_wdate}).text
