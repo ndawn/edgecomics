@@ -103,7 +103,7 @@ class WeeklyParser(Parser):
             model.cover_list = cover_list
             model.save()
 
-            self.parsed['items'].append(model.id)
+            self.parsed.append(model.id)
 
     def parse(self):
         if self.release_date is None:
