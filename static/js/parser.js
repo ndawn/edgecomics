@@ -19,7 +19,7 @@ let parser = (() => {
             let currentId = queue.pop();
             let xhr = new XMLHttpRequest();
 
-            xhr.open('GET', '/previews/postparse?mode=' + mode + '&id=' + currentId, true);
+            xhr.open('GET', '/previews/postparse/?mode=' + mode + '&id=' + currentId, true);
 
             xhr.onreadystatechange = () => {
 
@@ -57,7 +57,7 @@ let parser = (() => {
 
         parserControls.setLoadState('counting');
 
-        xhr.open('GET', '/previews/parse?mode=' + mode + (relDate ? '&release_date=' + relDate : ''));
+        xhr.open('GET', '/previews/parse/?mode=' + mode + (relDate ? '&release_date=' + relDate : ''));
 
         xhr.onreadystatechange = () => {
 
