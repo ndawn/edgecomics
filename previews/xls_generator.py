@@ -20,7 +20,7 @@ class XLSGenerator(xlwt.Workbook):
     def __init__(
             self,
             mode,
-            release_date,
+            session_timestamp,
             price_threshold=550,
             xls_dir='xls',
             style=get_default_style(),
@@ -30,7 +30,7 @@ class XLSGenerator(xlwt.Workbook):
         super().__init__()
 
         self.mode = mode
-        self.release_date = release_date
+        self.session_timestamp = session_timestamp
         self.price_threshold = price_threshold
         self.xls_dir = xls_dir
         self.style = style
@@ -66,12 +66,12 @@ class XLSGenerator(xlwt.Workbook):
         for publisher in PUBLISHERS:
             if self.mode == 'monthly':
                 values_under_threshold = Monthly.objects.filter(
-                    release_date=self.release_date,
+                    session_timestamp=self.session_timestamp,
                     publisher=publisher['full_name'],
                     price__lt=self.price_threshold,
                 )
                 values_above_threshold = Monthly.objects.filter(
-                    release_date=self.release_date,
+                    session_timestamp=self.session_timestamp,
                     publisher=publisher['full_name'],
                     price__gte=self.price_threshold,
                 )

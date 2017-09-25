@@ -38,7 +38,7 @@ class ParserView(View):
         parser.parse()
 
         return HttpResponse(
-            json.dumps({'entry_list': parser.parsed, 'release_date': parser.release_date.strftime('%Y-%m-%d')}),
+            json.dumps({'entry_list': parser.parsed, 'session_timestamp': parser.session_timestamp}),
             content_type='application/json',
         )
 

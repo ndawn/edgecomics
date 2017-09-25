@@ -5,6 +5,7 @@ from edgecomics.config import SITE_ADDRESS
 from commerce.models import DEFAULT_WEIGHT
 import os.path
 import datetime
+import time
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -19,6 +20,7 @@ class MonthlyParser(Parser):
     parse_url = 'https://previewsworld.com/catalog'
     publishers = PUBLISHERS
     release_date_batch = ''
+    session_timestamp = time.time()
     page = None
     soup = None
     cover_urls = {
@@ -41,7 +43,7 @@ class MonthlyParser(Parser):
             self.release_date_batch = self.release_date.replace(year=year, month=month).strftime('%b%y')
 
     def _delete_old(self):
-        self.model.objects.filter(release_date=self.release_date).delete()
+        self.model.objects.filter(release_date__month=self.release_date.month).delete()
 
     def _make_soup(self):
         self.page = requests.get(self.parse_url, {'batch': self.release_date_batch})
@@ -66,6 +68,7 @@ class MonthlyParser(Parser):
                 'publisher': publisher['full_name'],
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
+                'session_timestamp': self.session_timestamp,
             }
 
             price_origin = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')

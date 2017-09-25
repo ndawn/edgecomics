@@ -473,6 +473,11 @@ class Preview(Item):
         verbose_name='Дата выхода',
     )
 
+    session_timestamp = models.FloatField(
+        default=0.0,
+        verbose_name='Сессия',
+    )
+
 
 class Monthly(Preview):
     discount_superior = models.FloatField(

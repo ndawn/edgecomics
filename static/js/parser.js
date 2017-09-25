@@ -5,6 +5,7 @@ let parser = (() => {
 
     let mode = null;
     let releaseDate = null;
+    let sessionTimestamp = null;
     let queue = null;
     let queueLength = null;
     let threads = 5;
@@ -67,7 +68,7 @@ let parser = (() => {
 
                 queue = response.entry_list;
                 queueLength = queue.length;
-                releaseDate = response.release_date;
+                sessionTimestamp = response.session_timestamp;
 
                 parserControls.updateProgress(0, 1);
 
@@ -107,8 +108,7 @@ let parser = (() => {
 
         parserControls.enableLoader();
         parserControls.setLoadState('done');
-        console.log(releaseDate);
-        parserControls.setPriceLink(mode, releaseDate);
+        parserControls.setPriceLink(mode, sessionTimestamp);
 
     };
 
