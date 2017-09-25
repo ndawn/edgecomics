@@ -71,6 +71,7 @@ class WeeklyParser(Parser):
                 'diamond_id': None,
                 'midtown_id': entry['pr_id'],
                 'release_date': self.release_date,
+                'session_timestamp': self.session_timestamp,
             }
 
             price_origin = entry['pr_lprice']
@@ -126,7 +127,10 @@ class WeeklyParser(Parser):
             description_page = requests.get(self.description_url, {'PRID': self.model.midtown_id})
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-            self.model.description = description_soup.find('p', {'class': 'shorten'}).text
+            description_element = description_soup.find('p', {'class': 'shorten'})
+
+            if description_element is not None:
+                self.model.description = description_element.text
 
             diamond_container = description_soup.find('span', {'id': 'diamond_container'})
 
