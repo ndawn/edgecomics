@@ -151,22 +151,25 @@ class WeeklyParser(Parser):
                 self.model.cover_list = json.loads(self.model.cover_list)
 
             for item in self.model.cover_list.items():
-                if item[1] != dummy_url:
-                    filename = item[0] + '.jpg'
+                if self.model.diamond_id != '':
+                    if item[1] != dummy_url:
+                        filename = item[0] + '.jpg'
 
-                    image_response = requests.get(item[1], stream=True)
-                    image = image_response.raw.read()
+                        image_response = requests.get(item[1], stream=True)
+                        image = image_response.raw.read()
 
-                    model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
+                        model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
 
-                    if not os.path.exists(model_covers_path):
-                        os.mkdir(model_covers_path)
+                        if not os.path.exists(model_covers_path):
+                            os.mkdir(model_covers_path)
 
-                    out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
-                    out_file.write(image)
-                    out_file.close()
+                        out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
+                        out_file.write(image)
+                        out_file.close()
 
-                    self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
+                        self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
+                else:
+                    self.model.cover_list[item[0]] = dummy_url
 
             self.model.save()
 
