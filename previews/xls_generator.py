@@ -77,17 +77,17 @@ class XLSGenerator(xlwt.Workbook):
                 )
             elif self.mode == 'weekly':
                 values_under_threshold = Weekly.objects.filter(
-                    release_date=self.release_date,
+                    session_timestamp=self.session_timestamp,
                     publisher=publisher['full_name'],
                     price__lt=self.price_threshold,
                 )
                 values_above_threshold = []
 
             self._write_sheet(self.title_under_threshold % (publisher['short_name']),
-                             values_under_threshold)
+                              values_under_threshold)
 
             self._write_sheet(self.title_above_threshold % (publisher['short_name']),
-                             values_above_threshold)
+                              values_above_threshold)
 
         return self._save()
 

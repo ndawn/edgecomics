@@ -107,8 +107,8 @@ let parser = (() => {
     let getPrice = () => {
 
         parserControls.enableLoader();
-        parserControls.setLoadState('done');
         parserControls.setPriceLink(mode, sessionTimestamp);
+        parserControls.setLoadState('done');
 
     };
 

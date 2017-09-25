@@ -92,13 +92,11 @@ let parserControls = (() => {
     };
 
 
-    let setPriceLink = (mode, releaseDate) => {
+    let setPriceLink = (mode, sessionTimestamp) => {
 
         let xhr = new XMLHttpRequest();
 
-        console.log(releaseDate);
-
-        xhr.open('GET', '/previews/price?mode=' + mode + '&release_date=' + releaseDate);
+        xhr.open('GET', '/previews/price?mode=' + mode + '&session_timestamp=' + sessionTimestamp);
 
         xhr.onreadystatechange = () => {
 
