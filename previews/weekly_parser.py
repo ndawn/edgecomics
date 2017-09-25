@@ -122,7 +122,7 @@ class WeeklyParser(Parser):
 
         description_url = 'http://midtowncomics.com/store/dp.asp'
 
-        def load_description(self):
+        def postload(self):
             description_page = requests.get(self.description_url, {'PRID': self.model.midtown_id})
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
