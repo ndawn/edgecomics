@@ -7,3 +7,5 @@ DB = {
 }
 
 SITE_ADDRESS = ''
+
+DEBUG = False
