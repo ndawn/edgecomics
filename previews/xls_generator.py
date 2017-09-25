@@ -79,7 +79,6 @@ class XLSGenerator(xlwt.Workbook):
                 values_under_threshold = Weekly.objects.filter(
                     session_timestamp=self.session_timestamp,
                     publisher=publisher['full_name'],
-                    price__lt=self.price_threshold,
                 )
                 values_above_threshold = []
 
