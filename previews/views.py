@@ -65,7 +65,7 @@ class ParserView(View):
         pass
 
     def price(self, request: HttpRequest) -> HttpResponse:
-        xls = XLSGenerator(request.GET.get('mode'), request.GET.get('release_date'))
+        xls = XLSGenerator(request.GET.get('mode'), request.GET.get('session_timestamp'))
 
         path = xls.generate()
 

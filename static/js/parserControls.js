@@ -96,7 +96,7 @@ let parserControls = (() => {
 
         let xhr = new XMLHttpRequest();
 
-        xhr.open('GET', '/previews/price?mode=' + mode + '&session_timestamp=' + sessionTimestamp);
+        xhr.open('GET', '/previews/price/?mode=' + mode + '&session_timestamp=' + sessionTimestamp);
 
         xhr.onreadystatechange = () => {
 
