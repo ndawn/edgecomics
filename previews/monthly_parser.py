@@ -120,16 +120,21 @@ class MonthlyParser(Parser):
 
             text_container = description_soup.find('div', {'class': 'Text'})
 
-            text_container.find('div', {'class': 'ItemCode'}).decompose()
-            text_container.find('div', {'class': 'Creators'}).decompose()
-            text_container.find('div', {'class': 'SRP'}).decompose()
+            if text_container is not None:
+                text_container.find('div', {'class': 'ItemCode'}).decompose()
+                text_container.find('div', {'class': 'Creators'}).decompose()
+                text_container.find('div', {'class': 'SRP'}).decompose()
 
-            release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
+                release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
 
-            self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
-            self.model.description = text_container.text.strip()
+                try:
+                    self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
+                except ValueError:
+                    self.model.release_date = '1970-01-01'
 
-            self.model.save()
+                self.model.description = text_container.text.strip()
+
+                self.model.save()
 
             return self.model.description
 
