@@ -8,4 +8,6 @@ DB = {
 
 SITE_ADDRESS = ''
 
+ALLOWED_HOSTS = []
+
 DEBUG = False

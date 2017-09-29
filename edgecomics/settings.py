@@ -9,7 +9,7 @@ SECRET_KEY = '*s74-0f+j8imv2ph)js_ub!vtjve4$pjitolo8ylrtrlofoz@i'
 
 DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
 
 INSTALLED_APPS = [
