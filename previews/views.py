@@ -29,7 +29,7 @@ class ParserView(View):
     def parse(self, request: HttpRequest) -> HttpResponse:
         try:
             parser = globals()[request.GET.get('mode').capitalize() + 'Parser'](request.GET.get('release_date', None))
-        except KeyError:
+        except (KeyError, AttributeError):
             return HttpResponse(
                 json.dumps({'error': 'wrong mode: %s' % request.GET.get('mode')}),
                 content_type='application/json',
