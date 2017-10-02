@@ -1,0 +1,15 @@
+DB = {
+    'name': '',
+    'host': '127.0.0.1',
+    'port': '3306',
+    'user': '',
+    'password': '',
+}
+
+SECRET_KEY = ''
+
+SITE_ADDRESS = ''
+
+ALLOWED_HOSTS = []
+
+DEBUG = False

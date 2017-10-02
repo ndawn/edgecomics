@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Загрузчик предзаказов EDGE</title>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&amp;subset=cyrillic-ext" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/parser.css' %}">
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="container__title-wrap">
+            <a class="container__title" href="http://edgecomics.ru/">EDGE</a>
+            <div class="progress_bar" id="progress"></div>
+        </div>
+        <div class="container__body container__select" id="select">
+            <p class="sup">Выберите режим</p>
+            <div class="button_set">
+                <div class="button" id="monthly">Месяц</div>
+                <div class="button" id="weekly">Неделя</div>
+            </div>
+            <p class="sup">Введите дату</p>
+            <p class="sub">Оставьте поле пустым для загрузки последней доступной даты</p>
+            <input class="input" id="release_date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" placeholder="В формате ГГГГ-ММ-ДД">
+            <div class="button submit" id="submit">Загрузить</div>
+        </div>
+        <div class="container__body container__loading disabled" id="loading">
+            <p class="sup" id="loading_state"></p>
+            <svg class="loading-animation" id="loading_animation" viewBox="50 50 100 100">
+                <circle class="loading-animation__circle" cx="100" cy="100" r="45" fill="none" stroke-width="2" stroke-miterlimit="10"></circle>
+            </svg>
+            <img class="done-marker disabled" id="done_marker" src="/static/svg/check.svg" width="120px">
+            <a class="price-link disabled" id="price" href>
+                <div class="button">Скачать прайс</div>
+            </a>
+        </div>
+        <div class="container__body container__item disabled" id="item">
+            <p class="sup">Идёт загрузка</p>
+            <img class="item__cover" id="item_cover" src="">
+            <p class="item__title" id="item_title"></p>
+        </div>
+    </div>
+    <script type="text/javascript" src="/static/js/parserControls.js"></script>
+    <script type="text/javascript" src="/static/js/parser.js"></script>
+</body>
+</html>
