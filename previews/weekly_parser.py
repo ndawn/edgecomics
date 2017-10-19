@@ -34,15 +34,7 @@ class WeeklyParser(Parser):
     def _convert_date(self):
         if isinstance(self.release_date, str):
             self.release_date = datetime.datetime.strptime(self.release_date, '%Y-%m-%d')
-
-            if self.release_date.month > 2:
-                month = self.release_date.month - 2
-                year = self.release_date.year
-            else:
-                month = self.release_date.month + 10
-                year = self.release_date.year - 1
-
-            self.release_date_wdate = self.release_date.replace(year=year, month=month).strftime('%-m/%-d/%Y')
+            self.release_date_wdate = self.release_date.strftime('%-m/%-d/%Y')
 
     @staticmethod
     def _convert_response(response):
@@ -151,25 +143,27 @@ class WeeklyParser(Parser):
                 self.model.cover_list = json.loads(self.model.cover_list)
 
             for item in self.model.cover_list.items():
-                if self.model.diamond_id != '':
-                    if item[1] != dummy_url:
-                        filename = item[0] + '.jpg'
-
-                        image_response = requests.get(item[1], stream=True)
-                        image = image_response.raw.read()
-
-                        model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
-
-                        if not os.path.exists(model_covers_path):
-                            os.mkdir(model_covers_path)
-
-                        out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
-                        out_file.write(image)
-                        out_file.close()
-
-                        self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
+                if self.model.diamond_id != '' and self.model.diamond_id is not None:
+                    model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
                 else:
-                    self.model.cover_list[item[0]] = dummy_url
+                    model_covers_path = os.path.join(dirs_path, self.model.midtown_id)
+
+                if item[1] != dummy_url:
+                    filename = item[0] + '.jpg'
+
+                    image_response = requests.get(item[1], stream=True)
+                    image = image_response.raw.read()
+
+                    model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
+
+                    if not os.path.exists(model_covers_path):
+                        os.mkdir(model_covers_path)
+
+                    out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
+                    out_file.write(image)
+                    out_file.close()
+
+                    self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
 
             self.model.save()
 
