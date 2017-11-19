@@ -1,9 +1,17 @@
-from django.conf.urls import url, include
 from django.contrib import admin
-import previews.urls
+from django.urls import path
+from django.conf.urls import include
+import accounts.views
+import commerce.views
+import api.views
 
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^previews/', include(previews.urls)),
+    path('', commerce.views.IndexView.as_view(), name='index'),
+    path('api/cart/<method>/', api.views.CartView.as_view()),
+    path('api/cart/', api.views.CartView.as_view()),
+    path('account/', accounts.views.AccountView.as_view(), name='account'),
+    path('admin/', admin.site.urls),
+    path('cart/', commerce.views.CartView.as_view(), name='cart'),
+    path('item/<id>/', commerce.views.ItemView.as_view(), name='cart'),
 ]

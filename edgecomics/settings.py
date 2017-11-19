@@ -1,15 +1,17 @@
 import os
 from edgecomics import config
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 SECRET_KEY = config.SECRET_KEY
 
 DEBUG = config.DEBUG
 
 ALLOWED_HOSTS = config.ALLOWED_HOSTS
+
+AUTH_USER_MODEL = 'accounts.User'
+
+AUTO_LOGOUT = 52560000
 
 
 INSTALLED_APPS = [
@@ -19,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api',
     'accounts',
     'commerce',
     'previews',
@@ -40,7 +43,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            'templates',
+            os.path.join(BASE_DIR, 'templates')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -58,17 +61,13 @@ WSGI_APPLICATION = 'edgecomics.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config.DB['name'],
-        'HOST': config.DB['host'],
-        'PORT': config.DB['port'],
-        'USER': config.DB['user'],
-        'PASSWORD': config.DB['password'],
-    }
+    'default': config.DB
 }
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
+
+
+SESSION_COOKIE_AGE = 52560000
 
 
 AUTH_PASSWORD_VALIDATORS = [
