@@ -108,12 +108,15 @@
                 this.value = newId;
             }
         });
+<<<<<<< HEAD
         selects.next().find('.select2-selection__rendered').each(function() {
             // The element can have a clear button as a child.
             // Use the lastChild to modify only the displayed value.
             this.lastChild.textContent = newRepr;
             this.title = newRepr;
         });
+=======
+>>>>>>> bbccae89afa8df292834eb9ded5d5875dd45de7a
         win.close();
     }
 
