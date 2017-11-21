@@ -40,18 +40,6 @@ class Category(models.Model):
             'parent': self.parent.as_dict() if self.parent is not None else None,
         }
 
-    title = models.CharField(
-        default='',
-        max_length=16,
-        verbose_name='Название',
-    )
-
-    parent = models.ForeignKey(
-        'self',
-        null=True,
-        on_delete=models.CASCADE,
-    )
-
     def is_root(self):
         if self.parent is None:
             return True
