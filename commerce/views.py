@@ -7,10 +7,7 @@ from commerce.models import Category, Item
 class IndexView(TemplateView):
     template_name = 'index.html'
 
-    extra_context = {
-        'page_title': 'Магазин комиксов и фигурок THE EDGE',
-        'categories': Category.get_list()
-    }
+    extra_context = {'page_title': 'Магазин комиксов и фигурок THE EDGE'}
 
 
 class CartView(TemplateView):
