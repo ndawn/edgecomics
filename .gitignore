@@ -3,3 +3,4 @@ __pycache__
 media
 edgecomics/config.py
 logs
+*/*.save
