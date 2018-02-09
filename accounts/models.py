@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager as BaseUserManager
 
 
@@ -87,11 +88,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.first_name
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'last_name': self.last_name,
+            'first_name': self.first_name,
+            'patronymic': self.patronymic,
+        }
+
 
 class Address(models.Model):
     user = models.ForeignKey(
         User,
-        null=True,
         on_delete=models.CASCADE,
         verbose_name='Пользователь',
     )
@@ -143,3 +152,17 @@ class Address(models.Model):
         max_length=8,
         verbose_name='Почтовый индекс',
     )
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'user': self.user.as_dict(),
+            'main': self.main,
+            'country': self.country,
+            'region': self.region,
+            'locality': self.locality,
+            'street': self.street,
+            'building': self.building,
+            'apartment': self.apartment,
+            'zipcode': self.zipcode,
+        }

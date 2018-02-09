@@ -1,15 +1,21 @@
-from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
 from django.shortcuts import render
 from django.views import View
-from edgecomics.config import SITE_ADDRESS
+from edgecomics.config import SITE_ADDRESS, HAWK_TOKEN
 from previews.models import Monthly, Weekly
 from previews.monthly_parser import MonthlyParser
 from previews.weekly_parser import WeeklyParser
 from previews.xls_generator import XLSGenerator
+from hawkcatcher import Hawk
 import json
 
 
 class ParserView(View):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.hawk = Hawk(HAWK_TOKEN)
+
     method_list = [
         'parse',
         'postparse',
@@ -22,7 +28,11 @@ class ParserView(View):
             return render(request, 'previews/index.html')
         else:
             if hasattr(self, method):
-                return getattr(self, method)(request)
+                try:
+                    return getattr(self, method)(request)
+                except:
+                    self.hawk.catch()
+                    return HttpResponseServerError()
             else:
                 return HttpResponseBadRequest()
 

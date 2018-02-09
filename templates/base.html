@@ -40,7 +40,7 @@
                     <span class="nav_item_icon fa fa-home"></span>
                     <span class="nav_item_text">Главная</span>
                 </a>
-                <a class="nav_item" href="/account/">
+                <a class="nav_item" href="/accounts/profile/">
                     <span class="nav_item_icon fa fa-user"></span>
                     <span class="nav_item_text">Аккаунт</span>
                 </a>
@@ -48,20 +48,26 @@
                     <span class="nav_item_icon fa fa-shopping-cart"></span>
                     <span class="nav_item_text">Корзина</span>
                 </a>
+                {% if user.is_staff %}
+                <a class="nav_item" href="/admin/">
+                    <span class="nav_item_icon fa fa-database"></span>
+                    <span class="nav_item_text">Панель администрирования</span>
+                </a>
+                {% endif %}
                 <div class="nav_item cart_dropdown_button" id="cartDropdownToggle">
                     <span class="cart_dropdown_icon fa fa-shopping-cart"></span>
-                    <span class="cart_dropdown_count badge" id="cartDropdownCounter"></span>
+                    <span class="cart_dropdown_count badge" id="cartDropdownCounter">0</span>
                     <span class="cart_dropdown_icon fa fa-angle-down"></span>
                     <div class="cart_dropdown_menu_wrap" id="cartDropdownMenu">
                         <div class="cart_dropdown_menu">
                             <div class="cart_dropdown_overall">
                                 <div class="quantity">
                                     <span class="fa fa-shopping-cart"></span>
-                                    <span class="cart_dropdown_count badge" id="cartDropdownCounterInner"></span>
+                                    <span class="cart_dropdown_count badge" id="cartDropdownCounterInner">0</span>
                                 </div>
                                 <div class="overall">
                                     <span class="overall_text">Стоимость: </span>
-                                    <span class="overall_price" id="cartDropdownOverall"></span>
+                                    <span class="overall_price" id="cartDropdownOverall">0р.</span>
                                 </div>
                             </div>
                             <div class="cart_dropdown_items_wrap">
@@ -76,15 +82,22 @@
     </header>
 {% endblock %}
 
-<main class="main centered">
-    {% block aside %}
-        <nav class="aside">
-        {% for category in categories %}
-        {% endfor %}
-        </nav>
-    {% endblock %}
-    {% block content %}{% endblock %}
-</main>
+{% block main %}
+    <main class="main centered">
+        <aside class="aside">
+        {% block aside %}
+            <ul class="aside_categories">
+            {% for category in categories %}
+                <li class="aside_category">{{ category.category.title }}</li>
+            {% endfor %}
+            </ul>
+        {% endblock %}
+        </aside>
+        <section class="main_content">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+{% endblock %}
 
 {% block footer %}
     <footer class="footer" id="footer">
@@ -92,6 +105,12 @@
     </footer>
 {% endblock %}
     <script type="text/javascript" src="{% static 'js/base.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/domFactory.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/filters.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ajax.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/api.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/cartDropdown.js' %}"></script>
 {% block add_js %}{% endblock %}
 </body>
 </html>

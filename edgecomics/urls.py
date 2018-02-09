@@ -1,17 +1,17 @@
 from django.contrib import admin
-from django.urls import path
-from django.conf.urls import include
+from django.urls import path, include
+import accounts.urls
+import previews.urls
 import accounts.views
 import commerce.views
-import api.views
 
 
 urlpatterns = [
     path('', commerce.views.IndexView.as_view(), name='index'),
-    path('api/cart/<method>/', api.views.CartView.as_view()),
-    path('api/cart/', api.views.CartView.as_view()),
-    path('account/', accounts.views.AccountView.as_view(), name='account'),
+    path('accounts/', include(accounts.urls), name='accounts'),
     path('admin/', admin.site.urls),
-    path('cart/', commerce.views.CartView.as_view(), name='cart'),
-    path('item/<id>/', commerce.views.ItemView.as_view(), name='cart'),
+    path('cart/<action>', commerce.views.CartView.as_view(), name='cart_post'),
+    path('cart/', commerce.views.CartView.as_view(), name='cart_get'),
+    path('item/<id>/', commerce.views.ItemView.as_view(), name='item'),
+    path('previews/', include(previews.urls), name='previews'),
 ]

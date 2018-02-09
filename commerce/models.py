@@ -1,6 +1,4 @@
 from django.db import models, IntegrityError
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query import QuerySet
 from django_mysql.models import JSONField
 from accounts.models import User
 
@@ -33,8 +31,22 @@ class Category(models.Model):
         verbose_name='Родительская категория',
     )
 
+    slug = models.SlugField(
+        blank=True,
+        null=True,
+        verbose_name='Обозначение',
+    )
+
+    background = models.URLField(
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name='Фоновое изображение',
+    )
+
     def as_dict(self):
         return {
+            'id': self.id,
             'title': self.title,
             'description': self.description,
             'parent': self.parent.as_dict() if self.parent is not None else None,
@@ -64,6 +76,32 @@ class Category(models.Model):
     @staticmethod
     def get_list():
         return [cat.as_dict() for cat in Category.objects.all()]
+
+    def self_tree(self):
+        tree_list = []
+
+        for category in self.children():
+            tree_list.append({
+                'category': category,
+                'children': category.self_tree(),
+            })
+
+        return tree_list
+
+    @staticmethod
+    def tree():
+        tree_list = []
+
+        for category in Category.objects.filter(parent=None):
+            tree_list.append({
+                'category': category,
+                'children': category.self_tree(),
+            })
+
+        return tree_list
+
+    def children(self):
+        return list(Category.objects.filter(parent=self))
 
     def get_parent_chain(self):
         return [self.title] + (self.parent.get_parent_chain() if self.parent is not None else [])
@@ -164,7 +202,7 @@ class Item(models.Model):
         return {
             'id': self.id,
             'title': self.title,
-            'description': self.title,
+            'description': self.description,
             'category': self.category.as_dict() if self.category is not None else None,
             'publisher': self.publisher,
             'price': self.price,
@@ -178,32 +216,111 @@ class Item(models.Model):
         return ((self.category.get_root().title + ' -> ') if self.category is not None else '') + self.title
 
 
+class CartManager(models.Manager):
+    def get_cart(self, user):
+        return self.get_or_create(user=user, is_submitted=False, defaults={'user': user})[0]
+
+    def create_from_anonymous(self, anonymous, user):
+        for cart_item in anonymous:
+            item_id = cart_item['item']['id']
+            item_queryset = Item.objects.in_bulk([item_id])
+            item = item_queryset.get(item_id)
+
+            if item and item.quantity:
+                if item.quantity >= cart_item['quantity']:
+                    quantity = cart_item['quantity']
+                else:
+                    quantity = item.quantity
+
+                CartItem.objects.create(
+                    item=item,
+                    quantity=quantity,
+                    cart=self.get_cart(user),
+                )
+        return self.get_cart(user)
+
+
+class Cart(models.Model):
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
+
+    objects = CartManager()
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+    )
+
+    is_submitted = models.BooleanField(
+        default=False,
+        verbose_name='Закрыта',
+    )
+
+    closed = models.DateTimeField(
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name='Закрыта',
+    )
+
+    created = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        verbose_name='Создана',
+    )
+
+    updated = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        verbose_name='Обновлена',
+    )
+
+    def get_items(self):
+        return CartItem.objects.filter(cart=self)
+
+    def clear(self):
+        self.get_items().delete()
+
+    def as_dict(self):
+        cart = []
+
+        for cart_item in self.get_items():
+            cart.append(cart_item.as_dict())
+
+        return cart
+
+
 class CartItem(models.Model):
     class Meta:
         verbose_name = 'Элемент корзины'
         verbose_name_plural = 'Элементы корзины'
 
-        unique_together = ('user', 'item')
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        blank=True,
-        verbose_name='Пользователь',
-    )
+        unique_together = ('cart', 'item')
 
     item = models.ForeignKey(
         Item,
-        on_delete=models.CASCADE,
-        blank=True,
         null=True,
+        blank=True,
+        on_delete=models.CASCADE,
         verbose_name='Товар',
     )
 
     quantity = models.IntegerField(
         default=1,
+        null=True,
         blank=True,
         verbose_name='Количество',
+    )
+
+    cart = models.ForeignKey(
+        Cart,
+        default=None,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        verbose_name='Корзина',
     )
 
     created = models.DateTimeField(
@@ -218,134 +335,11 @@ class CartItem(models.Model):
         verbose_name='Обновлен',
     )
 
-    def in_stock(self):
-        return (self.item.quantity != 0) or (self.item.quantity is None)
-
     def as_dict(self):
         return {
-            'id': self.id,
-            'quantity': self.quantity,
             'item': self.item.as_dict(),
+            'quantity': self.quantity,
         }
-
-    class _Cart:
-        @staticmethod
-        def get(obj):
-            if isinstance(obj, User):
-                return CartItem.objects.filter(user=obj)
-            elif isinstance(obj, int):
-                return CartItem.objects.filter(user__id=obj)
-            else:
-                return CartItem.objects.none()
-
-        @staticmethod
-        def get_list(obj):
-            if isinstance(obj, User):
-                return [item.as_dict() for item in CartItem.objects.filter(user=obj)]
-            elif isinstance(obj, int):
-                return [item.as_dict() for item in CartItem.objects.filter(user__id=obj)]
-            elif isinstance(obj, QuerySet) or isinstance(obj, list):
-                return [item.as_dict() for item in obj]
-            else:
-                return []
-
-        @staticmethod
-        def add(user, obj):
-            try:
-                if isinstance(obj, Item):
-                    if isinstance(user, User):
-                        return CartItem.objects.create(user=user, item=obj).as_dict()
-                    elif isinstance(user, int):
-                        return CartItem.objects.create(user__id=user, item=obj).as_dict()
-                elif isinstance(obj, int):
-                    try:
-                        item = Item.objects.get(id=obj)
-                    except ObjectDoesNotExist:
-                        return
-
-                    if not item.active:
-                        return
-                    elif isinstance(user, User):
-                        return CartItem.objects.create(user=user, item=item).as_dict()
-                    elif isinstance(user, int):
-                        return CartItem.objects.create(user__id=user, item=item).as_dict()
-                    else:
-                        return
-            except IntegrityError:
-                return
-
-        @staticmethod
-        def remove(obj):
-            if isinstance(obj, CartItem):
-                return obj.delete()
-            elif isinstance(obj, int):
-                try:
-                    return CartItem.objects.get(id=obj).delete()
-                except ObjectDoesNotExist:
-                    return CartItem.objects.none().delete()
-            else:
-                return CartItem.objects.none().delete()
-
-        @staticmethod
-        def update(obj, quantity):
-            if not isinstance(quantity, int):
-                return False, 'invalid request'
-
-            if isinstance(obj, CartItem):
-                item = obj
-            elif isinstance(obj, int):
-                try:
-                    item = CartItem.objects.get(id=obj)
-                except ObjectDoesNotExist:
-                    return False, 'object does not exist', 404
-            else:
-                return False, 'invalid request', 400
-
-            if item.item.quantity is not None:
-                if (quantity > 0) and (quantity <= item.item.quantity):
-                    item.quantity = quantity
-                    item.save()
-
-                    return True, {
-                        'id': item.id,
-                        'quantity': item.quantity,
-                    }
-                elif quantity <= 0:
-                    CartItem.cart.remove(item)
-
-                    return True, {
-                        'id': None,
-                        'quantity': 0,
-                    }
-                else:
-                    item.quantity = item.item.quantity
-                    item.save()
-
-                    return True, {
-                        'id': item.id,
-                        'quantity': item.quantity,
-                    }
-            else:
-                item.quantity = quantity
-                item.save()
-
-                return True, {
-                    'id': item.id,
-                    'quantity': item.quantity,
-                }
-
-        @staticmethod
-        def clear(obj):
-            if isinstance(obj, User):
-                return CartItem.objects.filter(user=obj).delete()
-            elif isinstance(obj, int):
-                return CartItem.objects.filter(user__id=obj).delete()
-            elif isinstance(obj, QuerySet):
-                return obj.delete()
-            else:
-                return CartItem.objects.none().delete()
-
-    cart = _Cart
 
 
 class PaymentMethod(models.Model):
@@ -366,6 +360,13 @@ class PaymentMethod(models.Model):
         verbose_name='Описание',
     )
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+        }
+
 
 class DeliveryMethod(models.Model):
     class Meta:
@@ -384,6 +385,13 @@ class DeliveryMethod(models.Model):
         blank=True,
         verbose_name='Описание',
     )
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+        }
 
 
 class OrderStatus(models.Model):
@@ -405,6 +413,13 @@ class OrderStatus(models.Model):
         verbose_name='Описание',
     )
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+        }
+
 
 class Order(models.Model):
     class Meta:
@@ -419,10 +434,12 @@ class Order(models.Model):
         verbose_name='Пользователь',
     )
 
-    content = JSONField(
-        default=list,
+    cart = models.ForeignKey(
+        Cart,
+        on_delete=models.DO_NOTHING,
+        null=True,
         blank=True,
-        verbose_name='Содержимое',
+        verbose_name='Корзина',
     )
 
     payment_method = models.ForeignKey(
@@ -465,3 +482,16 @@ class Order(models.Model):
         blank=True,
         verbose_name='Обновлен',
     )
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'user': self.user.as_dict(),
+            'content': self.content,
+            'payment_method': self.payment_method.as_dict(),
+            'delivery_method': self.delivery_method.as_dict(),
+            'track_code': self.track_code,
+            'status': self.status.as_dict(),
+            'created': self.created,
+            'updated': self.updated,
+        }
