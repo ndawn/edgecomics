@@ -6,10 +6,11 @@ certifi==2017.11.5
 chardet==3.0.4
 curtsies==0.2.11
 demjson==2.2.4
-Django==2.0b1
+Django==2.0.2
 django-mysql==2.1.1
 greenlet==0.4.12
 gunicorn==19.7.1
+hawkcatcher==1.0.1
 idna==2.6
 jsonfield==2.0.2
 lxml==4.1.1

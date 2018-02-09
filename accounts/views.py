@@ -86,7 +86,7 @@ class LoginView(TemplateView):
 
                 request.session.clear()
 
-                if not user.cart().get_items():
+                if not Cart.objects.get_cart(user).get_items():
                     Cart.objects.create_from_anonymous(anonymous_cart, user)
 
                 login(request, user)
