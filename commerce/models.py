@@ -1,5 +1,5 @@
 from django.db import models, IntegrityError
-from django_mysql.models import JSONField
+from django.contrib.postgres.fields import JSONField
 from accounts.models import User
 
 
