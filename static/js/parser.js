@@ -24,9 +24,14 @@ let parser = (() => {
 
             xhr.onreadystatechange = () => {
 
-                if (xhr.status == 200 && xhr.readyState == 4) {
+                if (xhr.readyState === 4) {
 
-                    parserControls.fillItem(JSON.parse(xhr.responseText));
+                    if (xhr.status === 200) {
+
+                        parserControls.fillItem(JSON.parse(xhr.responseText));
+
+                    }
+
                     parserControls.updateProgress(queueLength - queue.length, queueLength);
 
                     coversDownloadPoll();
