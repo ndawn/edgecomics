@@ -464,12 +464,12 @@ class Preview(Item):
 
     diamond_id = models.CharField(
         null=True,
-        max_length=16,
+        max_length=64,
         verbose_name='ID Diamond',
     )
 
     release_date = models.DateField(
-        default='1970-01-01',
+        null=True,
         verbose_name='Дата выхода',
     )
 
@@ -489,6 +489,7 @@ class Monthly(Preview):
 class Weekly(Preview):
     midtown_id = models.CharField(
         default='',
-        max_length=16,
+        max_length=64,
         verbose_name='Код Midtown',
     )
+
