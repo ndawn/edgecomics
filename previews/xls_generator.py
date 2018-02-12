@@ -24,7 +24,7 @@ class XLSGenerator(xlwt.Workbook):
             price_threshold=550,
             xls_dir='xls',
             style=get_default_style(),
-            title_under_threshold='Предзаказы %s',
+            title_under_threshold='Синглы %s',
             title_above_threshold='Сборники %s',
     ):
         super().__init__()
@@ -123,7 +123,10 @@ class XLSGenerator(xlwt.Workbook):
         if hasattr(entry, column):
             cell = getattr(entry, column)
         else:
-            cell = eval(column)
+            try:
+                cell = eval(column)
+            except (ValueError, AttributeError, SyntaxError):
+                cell = ''
 
         sheet.write(x, y, cell)
 

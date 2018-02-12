@@ -140,7 +140,7 @@ class MonthlyParser(Parser):
                 try:
                     self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
                 except ValueError:
-                    self.model.release_date = '1970-01-01'
+                    self.model.release_date = None
 
                 self.model.description = text_container.text.strip()
 
