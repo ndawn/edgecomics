@@ -2,12 +2,13 @@ from previews.models import Monthly, PUBLISHERS, PRICES
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import SITE_ADDRESS
+from bs4 import BeautifulSoup
 from commerce.models import DEFAULT_WEIGHT
+import titlecase
 import os.path
 import datetime
 import time
 import requests
-from bs4 import BeautifulSoup
 import json
 
 
@@ -28,6 +29,12 @@ class MonthlyParser(Parser):
         'thumb': 'https://previewsworld.com/siteimage/catalogthumbnail/%s?type=1',
     }
     model = Monthly
+
+    def _process_title(self, title):
+        def abbreviatures(word, **kwargs):
+            pass
+
+        return ' '.join(titlecase.titlecase(title, callback=abbreviatures).split())
 
     def _convert_date(self):
         if isinstance(self.release_date, str):
