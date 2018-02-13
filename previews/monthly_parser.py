@@ -31,13 +31,14 @@ class MonthlyParser(Parser):
     model = Monthly
 
     def _process_title(self, title):
-        def abbreviatures(word, **kwargs):
-            if word == 'VAR':
-                return 'Variant'
-            elif word in ('ED', 'LEG'):
-                return ''
+        def abbrs(word, **kwargs):
+            if word in ('TP', 'HC'):
+                return word
 
-        return ' '.join(titlecase.titlecase(title, callback=abbreviatures).split())
+        return ' '.join(titlecase.titlecase(title, callback=abbrs).split()) \
+            .replace('Var Ed', 'Variant') \
+            .replace('Var', 'Variant') \
+            .replace('Leg', '')
 
     def _convert_date(self):
         if isinstance(self.release_date, str):
