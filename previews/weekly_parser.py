@@ -135,7 +135,7 @@ class WeeklyParser(Parser):
             diamond_container = description_soup.find('span', {'id': 'diamond_container'})
 
             if diamond_container is not None:
-                self.model.diamond_id = diamond_container.text
+                self.model.diamond_id = diamond_container.text[:9]
 
             self.model.save()
 
@@ -158,16 +158,21 @@ class WeeklyParser(Parser):
                         image_response = requests.get(item[1], stream=True)
                         image = image_response.raw.read()
 
-                        model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
+                        if self.model.diamond_id:
+                            item_id = self.model.diamond_id
+                        else:
+                            item_id = 'MT' + self.model.midtown_id
+
+                        model_covers_path = os.path.join(dirs_path, item_id)
 
                         if not os.path.exists(model_covers_path):
                             os.mkdir(model_covers_path)
 
-                        out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
+                        out_file = open(download_path % (item_id, filename), 'wb')
                         out_file.write(image)
                         out_file.close()
 
-                        self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
+                        self.model.cover_list[item[0]] = downloaded_url % (item_id, filename)
                 else:
                     self.model.cover_list[item[0]] = dummy_url
 

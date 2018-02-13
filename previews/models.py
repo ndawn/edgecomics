@@ -464,7 +464,7 @@ class Preview(Item):
 
     diamond_id = models.CharField(
         null=True,
-        max_length=64,
+        max_length=9,
         verbose_name='ID Diamond',
     )
 
@@ -492,4 +492,3 @@ class Weekly(Preview):
         max_length=64,
         verbose_name='Код Midtown',
     )
-

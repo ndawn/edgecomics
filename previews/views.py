@@ -77,6 +77,6 @@ class ParserView(View):
     def price(self, request: HttpRequest) -> HttpResponse:
         xls = XLSGenerator(request.GET.get('mode'), request.GET.get('session_timestamp'))
 
-        path = xls.generate()
+        uri = xls.generate()
 
-        return HttpResponse(json.dumps({'url': SITE_ADDRESS + path}), content_type='application/json')
+        return HttpResponse(json.dumps({'url': SITE_ADDRESS + uri}), content_type='application/json')

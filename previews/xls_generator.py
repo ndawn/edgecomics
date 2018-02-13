@@ -5,40 +5,47 @@ import time
 from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
 import json
 import locale
-import xlwt
+import xlsxwriter
 
 
-def get_default_style():
-    style = xlwt.XFStyle()
+def get_default_style(wb):
+    style = wb.add_format()
 
-    style.font = 'Calibri'
+    style.set_font('Calibri')
 
     return style
 
 
-class XLSGenerator(xlwt.Workbook):
+class XLSGenerator:
     def __init__(
             self,
             mode,
             session_timestamp,
+            file_name=None,
             price_threshold=550,
             xls_dir='xls',
-            style=get_default_style(),
+            style=None,
             title_under_threshold='Синглы %s',
             title_above_threshold='Сборники %s',
     ):
-        super().__init__()
-
         self.mode = mode
         self.session_timestamp = session_timestamp
+        self.file_name = '%s_%d.xlsx' % (self.mode, self.session_timestamp) if file_name is None else file_name
         self.price_threshold = price_threshold
         self.xls_dir = xls_dir
-        self.style = style
         self.title_under_threshold = title_under_threshold
         self.title_above_threshold = title_above_threshold
         self.titles = self.columns + self.additional_columns[self.mode]
 
-        locale.setlocale(locale.LC_TIME, 'ru_RU.utf-8')
+        self.file_path = os.path.join(
+            MEDIA_ROOT,
+            self.xls_dir,
+            self.file_name,
+        )
+
+        self.workbook = xlsxwriter.Workbook(self.file_path)
+
+        self.style = style if style is not None else get_default_style(self.workbook)
 
     columns = [
         ('Наименование', 'title'),
@@ -82,27 +89,37 @@ class XLSGenerator(xlwt.Workbook):
                 )
                 values_above_threshold = []
 
-            self._write_sheet(self.title_under_threshold % (publisher['short_name']),
-                              values_under_threshold)
+            self._write_sheet(
+                self.title_under_threshold % (publisher['short_name']),
+                values_under_threshold,
+            )
 
-            self._write_sheet(self.title_above_threshold % (publisher['short_name']),
-                              values_above_threshold)
+            self._write_sheet(
+                self.title_above_threshold % (publisher['short_name']),
+                values_above_threshold,
+            )
 
-        return self._save()
+        self.workbook.close()
+
+        return os.path.join(MEDIA_URL, self.xls_dir, self.file_name)
 
     def _write_sheet(self, title, values):
         if values:
-            sheet = self.add_sheet(title)
+            sheet = self.workbook.add_worksheet(title)
 
-            sheet.write(0, 0, title)
+            sheet.write(0, 0, title, self.style)
+
             self._write_titles(sheet)
             self._write_values(sheet, values)
 
     def _write_titles(self, sheet):
         for col in range(len(self.titles)):
-            sheet.write(self.shift_x,
-                        col + self.shift_y,
-                        self.titles[col][0])
+            sheet.write(
+                self.shift_x,
+                col + self.shift_y,
+                self.titles[col][0],
+                self.style,
+            )
 
     def _write_values(self, sheet, values):
         for row in range(len(values)):
@@ -112,14 +129,15 @@ class XLSGenerator(xlwt.Workbook):
                 entry.cover_list = json.loads(entry.cover_list)
 
             for col in range(len(self.titles)):
-                self._write_attr(sheet,
-                                 entry,
-                                 self.titles[col][1],
-                                 row + 1 + self.shift_x,
-                                 col + self.shift_y)
+                self._write_attr(
+                    sheet,
+                    entry,
+                    self.titles[col][1],
+                    row + 1 + self.shift_x,
+                    col + self.shift_y,
+                )
 
-    @staticmethod
-    def _write_attr(sheet, entry, column, x, y):
+    def _write_attr(self, sheet, entry, column, x, y):
         if hasattr(entry, column):
             cell = getattr(entry, column)
         else:
@@ -128,14 +146,4 @@ class XLSGenerator(xlwt.Workbook):
             except (ValueError, AttributeError, SyntaxError):
                 cell = ''
 
-        sheet.write(x, y, cell)
-
-    def _save(self):
-        url = os.path.join(self.xls_dir,
-                           '%s_%s.xls' % (self.mode, time.strftime('%Y-%m-%d_%H:%M:%S')))
-
-        path = os.path.join(MEDIA_ROOT, url)
-
-        super().save(path)
-
-        return os.path.join(MEDIA_URL, url)
+        sheet.write(x, y, cell, self.style)
