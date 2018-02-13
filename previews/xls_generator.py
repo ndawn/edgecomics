@@ -30,7 +30,7 @@ class XLSGenerator:
     ):
         self.mode = mode
         self.session_timestamp = session_timestamp
-        self.file_name = '%s_%d.xlsx' % (self.mode, self.session_timestamp) if file_name is None else file_name
+        self.file_name = '%s_%s.xlsx' % (self.mode, self.session_timestamp) if file_name is None else file_name
         self.price_threshold = price_threshold
         self.xls_dir = xls_dir
         self.title_under_threshold = title_under_threshold
