@@ -78,7 +78,7 @@ class MonthlyParser(Parser):
 
         for entry in entries:
             params = {
-                'title': entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' '),
+                'title': self._process_title(entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')),
                 'publisher': publisher['full_name'],
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
