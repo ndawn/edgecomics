@@ -10,6 +10,7 @@ import datetime
 import time
 import requests
 import json
+import re
 
 
 class MonthlyParser(Parser):
@@ -35,10 +36,12 @@ class MonthlyParser(Parser):
             if word in ('TP', 'HC'):
                 return word
 
-        return ' '.join(titlecase.titlecase(title, callback=abbrs).split()) \
+        string = titlecase.titlecase(title, callback=abbrs) \
             .replace('Var Ed', 'Variant') \
-            .replace('Var', 'Variant') \
+            .replace('Var ', 'Variant ') \
             .replace('Leg', '')
+
+        return ' '.join(re.sub('\(.*\)', '', string).split())
 
     def _convert_date(self):
         if isinstance(self.release_date, str):
