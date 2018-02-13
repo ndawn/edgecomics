@@ -32,7 +32,10 @@ class MonthlyParser(Parser):
 
     def _process_title(self, title):
         def abbreviatures(word, **kwargs):
-            pass
+            if word == 'VAR':
+                return 'Variant'
+            elif word in ('ED', 'LEG'):
+                return ''
 
         return ' '.join(titlecase.titlecase(title, callback=abbreviatures).split())
 
