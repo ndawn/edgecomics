@@ -21,7 +21,7 @@ class WeeklyParser(Parser):
     parse_url = 'http://midtowncomics.com/store/ajax_wr_online.asp'
     publishers = filter(lambda x: x.get('load_weekly'), PUBLISHERS)
     release_date_wdate = ''
-    session_timestamp = time.time()
+    session_timestamp = int(time.time())
     page = None
     soup = None
     cover_urls = [

@@ -22,7 +22,7 @@ class MonthlyParser(Parser):
     parse_url = 'https://previewsworld.com/catalog'
     publishers = PUBLISHERS
     release_date_batch = ''
-    session_timestamp = time.time()
+    session_timestamp = int(time.time())
     page = None
     soup = None
     cover_urls = {
