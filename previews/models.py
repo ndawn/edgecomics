@@ -473,8 +473,8 @@ class Preview(Item):
         verbose_name='Дата выхода',
     )
 
-    session_timestamp = models.FloatField(
-        default=0.0,
+    session_timestamp = models.BigIntegerField(
+        null=True,
         verbose_name='Сессия',
     )
 

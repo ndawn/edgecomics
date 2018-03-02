@@ -138,15 +138,29 @@ class MonthlyParser(Parser):
             text_container = description_soup.find('div', {'class': 'Text'})
 
             if text_container is not None:
-                text_container.find('div', {'class': 'ItemCode'}).decompose()
-                text_container.find('div', {'class': 'Creators'}).decompose()
-                text_container.find('div', {'class': 'SRP'}).decompose()
+                try:
+                    text_container.find('div', {'class': 'ItemCode'}).decompose()
+                except AttributeError:
+                    pass
 
-                release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
+                try:
+                    text_container.find('div', {'class': 'Creators'}).decompose()
+                except AttributeError:
+                    pass
+
+                try:
+                    text_container.find('div', {'class': 'SRP'}).decompose()
+                except AttributeError:
+                    pass
+
+                try:
+                    release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
+                except AttributeError:
+                    release_date = None
 
                 try:
                     self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
-                except ValueError:
+                except (ValueError, AttributeError):
                     self.model.release_date = None
 
                 self.model.description = text_container.text.strip()
