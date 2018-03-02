@@ -1,6 +1,6 @@
 from previews.models import Monthly, Weekly
 from previews.models import PUBLISHERS
-import os.path
+import os
 import time
 from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
 import json
@@ -46,6 +46,9 @@ class XLSGenerator:
         self.workbook = xlsxwriter.Workbook(self.file_path)
 
         self.style = style if style is not None else get_default_style(self.workbook)
+
+        if os.path.exists(self.file_path):
+            os.remove(self.file_path)
 
     columns = [
         ('Наименование', 'title'),

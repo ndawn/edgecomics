@@ -30,6 +30,8 @@ class ParserView(View):
             if hasattr(self, method):
                 try:
                     return getattr(self, method)(request)
+                except SystemExit:
+                    raise
                 except:
                     self.hawk.catch()
                     return HttpResponseServerError()
