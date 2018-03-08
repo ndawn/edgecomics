@@ -33,7 +33,7 @@ class WeeklyParser(Parser):
     model = Weekly
 
     def _process_title(self, title):
-        title = title.replace(' (Marvel Legacy Tie-In)', '')
+        title = re.sub('\(.*\)| \(Marvel Legacy Tie-In\)', '', title)
         title = re.sub('Vol [0-9]+', '', title)
 
         re_cover_a = re.compile('Cover A')
