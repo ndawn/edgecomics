@@ -77,7 +77,11 @@ class ParserView(View):
         pass
 
     def price(self, request: HttpRequest) -> HttpResponse:
-        xls = XLSGenerator(request.GET.get('mode'), request.GET.get('session_timestamp'))
+        xls = XLSGenerator(
+            request.GET.get('mode'),
+            request.GET.get('session_timestamp'),
+            title_under_threshold='Предзаказы %s' if request.GET.get('mode') == 'weekly' else 'Синглы %s',
+        )
 
         uri = xls.generate()
 

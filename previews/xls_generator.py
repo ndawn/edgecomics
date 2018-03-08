@@ -90,7 +90,6 @@ class XLSGenerator:
                     session_timestamp=self.session_timestamp,
                     publisher=publisher['full_name'],
                 ).order_by('title')
-                print(len(list(values_under_threshold)))
                 values_above_threshold = []
 
             self._write_sheet(
@@ -131,8 +130,6 @@ class XLSGenerator:
 
             while isinstance(entry.cover_list, str):
                 entry.cover_list = json.loads(entry.cover_list)
-
-            print(entry.id)
 
             for col in range(len(self.titles)):
                 self._write_attr(
