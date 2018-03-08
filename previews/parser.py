@@ -1,11 +1,12 @@
 from previews.models import Preview
 from typing import Union
-import datetime
+import time
 
 
 class Parser:
     def __init__(self, release_date: Union[None, str] = None) -> None:
         self.release_date = release_date
+        self.session_timestamp = int(time.time())
 
     parse_url = ''
     parse_engine = 'lxml'
@@ -15,6 +16,9 @@ class Parser:
     parsed = []
 
     model = Preview
+
+    def _process_title(self, title):
+        pass
 
     def _date_from_soup(self):
         pass

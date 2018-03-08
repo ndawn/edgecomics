@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 import demjson
 import json
+import re
 
 
 class WeeklyParser(Parser):
@@ -30,6 +31,25 @@ class WeeklyParser(Parser):
     ]
 
     model = Weekly
+
+    def _process_title(self, title):
+        title = title.replace(' (Marvel Legacy Tie-In)', '')
+        title = re.sub('Vol [0-9]+', '', title)
+
+        re_cover_a = re.compile('Cover A')
+        re_cover_b = re.compile('Cover [B-Z]')
+
+        if re_cover_b.search(title):
+            title = re_cover_b.sub('', title)
+
+            if title.endswith('Cover'):
+                title = title[:-5]
+        elif re_cover_a.search(title):
+            title = re_cover_a.split(title)[0]
+
+        title = re.sub('Ptg', 'Printing', title)
+
+        return ' '.join(title.split())
 
     def _convert_date(self):
         if isinstance(self.release_date, str):

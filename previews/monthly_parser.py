@@ -7,7 +7,6 @@ from commerce.models import DEFAULT_WEIGHT
 import titlecase
 import os.path
 import datetime
-import time
 import requests
 import json
 import re
@@ -22,7 +21,6 @@ class MonthlyParser(Parser):
     parse_url = 'https://previewsworld.com/catalog'
     publishers = PUBLISHERS
     release_date_batch = ''
-    session_timestamp = int(time.time())
     page = None
     soup = None
     cover_urls = {
