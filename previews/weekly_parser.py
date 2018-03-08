@@ -36,6 +36,8 @@ class WeeklyParser(Parser):
         title = re.sub('\(.*\)| \(Marvel Legacy Tie-In\)', '', title)
         title = re.sub('Vol [0-9]+', '', title)
 
+        title = title.rstrip()
+
         re_cover_a = re.compile('Cover A')
         re_cover_b = re.compile('Cover [B-Z]')
 
