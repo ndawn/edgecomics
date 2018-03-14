@@ -17,7 +17,7 @@ class WeeklyParser(Parser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._convert_date()
+        self._set_date()
 
     parse_url = 'http://midtowncomics.com/store/ajax_wr_online.asp'
     publishers = filter(lambda x: x.get('load_weekly'), PUBLISHERS)
@@ -53,24 +53,26 @@ class WeeklyParser(Parser):
 
         return ' '.join(title.split())
 
-    def _convert_date(self):
-        if isinstance(self.release_date, str):
-            self.release_date = datetime.datetime.strptime(self.release_date, '%Y-%m-%d')
+    def _set_date(self):
+        if self.release_date is not None:
+            #if self.release_date.month > 2:
+            #    month = self.release_date.month - 2
+            #    year = self.release_date.year
+            #else:
+            #    month = self.release_date.month + 10
+            #    year = self.release_date.year - 1
 
-            if self.release_date.month > 2:
-                month = self.release_date.month - 2
-                year = self.release_date.year
-            else:
-                month = self.release_date.month + 10
-                year = self.release_date.year - 1
-
-            self.release_date_wdate = self.release_date.replace(year=year, month=month).strftime('%-m/%-d/%Y')
+            #self.release_date_wdate = self.release_date.replace(year=year, month=month).strftime('%-m/%-d/%Y')
+            self.release_date_wdate = self.release_date.strftime('%-m/%-d/%Y')
+        else:
+            self._date_from_soup()
 
     @staticmethod
     def _convert_response(response):
         return demjson.decode(response)
 
     def _request_entries(self, publisher):
+        print('WDATE:', self.release_date_wdate)
         raw = requests.get(self.parse_url, {'cat': publisher['midtown_code'], 'wdate': self.release_date_wdate}).text
         return WeeklyParser._convert_response(raw)
 
@@ -78,9 +80,11 @@ class WeeklyParser(Parser):
         date_page = requests.get('http://midtowncomics.com/store/weeklyreleasebuy.asp')
         date_soup = BeautifulSoup(date_page.text, self.parse_engine)
         date_string = date_soup.find('option', {'selected': ''})['value']
+        print('date_string:', date_string)
 
         self.release_date = datetime.datetime.strptime(date_string, '%m/%d/%Y')
         self.release_date_wdate = date_string
+        print('release_date (converted):', self.release_date, '| release_date_wdate:', self.release_date_wdate)
 
     def _parse_by_publisher(self, publisher):
         entries = self._request_entries(publisher)

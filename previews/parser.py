@@ -1,12 +1,14 @@
 from previews.models import Preview
-from typing import Union
+import datetime
 import time
 
 
 class Parser:
-    def __init__(self, release_date: Union[None, str] = None) -> None:
-        self.release_date = release_date
+    def __init__(self, release_date=None):
+        self.release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d') if release_date is not None else None
+        print('release_date (raw):', release_date, '| release_date (converted):', self.release_date)
         self.session_timestamp = int(time.time())
+        print('session_timestamp:', self.session_timestamp)
 
     parse_url = ''
     parse_engine = 'lxml'

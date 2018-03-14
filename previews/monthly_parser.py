@@ -16,7 +16,7 @@ class MonthlyParser(Parser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._convert_date()
+        self._set_date()
 
     parse_url = 'https://previewsworld.com/catalog'
     publishers = PUBLISHERS
@@ -41,8 +41,8 @@ class MonthlyParser(Parser):
 
         return ' '.join(re.sub('\(.*\)', '', string).split())
 
-    def _convert_date(self):
-        if isinstance(self.release_date, str):
+    def _set_date(self):
+        if self.release_date is not None:
             self.release_date = datetime.datetime.strptime(self.release_date, '%Y-%m-%d')
 
             if self.release_date.month > 2:
@@ -67,6 +67,7 @@ class MonthlyParser(Parser):
             date_string = date_container.find_all('strong')[-1].text
 
             self.release_date = datetime.datetime.strptime(date_string, '%B %Y')
+            self.release_date_batch = self.release_date.replace(year=year, month=month).strftime('%b%y')
         else:
             raise ValueError('The soup is not yet cooked')
 
