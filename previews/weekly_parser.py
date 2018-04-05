@@ -1,16 +1,18 @@
+import os.path
+import datetime
+import time
+import json
+import re
+
 from previews.models import Weekly, PUBLISHERS, PRICES
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import SITE_ADDRESS
 from commerce.models import DEFAULT_WEIGHT
-import os.path
-import datetime
-import time
-import requests
+
 from bs4 import BeautifulSoup
+import requests
 import demjson
-import json
-import re
 
 
 class WeeklyParser(Parser):

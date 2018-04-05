@@ -1,10 +1,12 @@
-from previews.models import Monthly, Weekly
-from previews.models import PUBLISHERS
 import os
 import time
-from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
-import json
 import locale
+import json
+
+from previews.models import Monthly, Weekly
+from previews.models import PUBLISHERS
+from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
+
 import xlsxwriter
 
 

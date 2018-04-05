@@ -1,15 +1,17 @@
+import os.path
+import datetime
+import json
+import re
+
 from previews.models import Monthly, PUBLISHERS, PRICES
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import SITE_ADDRESS
-from bs4 import BeautifulSoup
 from commerce.models import DEFAULT_WEIGHT
+
+from bs4 import BeautifulSoup
 import titlecase
-import os.path
-import datetime
 import requests
-import json
-import re
 
 
 class MonthlyParser(Parser):

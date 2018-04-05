@@ -1,3 +1,5 @@
+import json
+
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
 from django.shortcuts import render
 from django.views import View
@@ -6,8 +8,8 @@ from previews.models import Monthly, Weekly
 from previews.monthly_parser import MonthlyParser
 from previews.weekly_parser import WeeklyParser
 from previews.xls_generator import XLSGenerator
+
 from hawkcatcher import Hawk
-import json
 
 
 class ParserView(View):

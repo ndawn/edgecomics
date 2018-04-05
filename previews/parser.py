@@ -1,6 +1,7 @@
-from previews.models import Preview
 import datetime
 import time
+
+from previews.models import Preview
 
 
 class Parser:
