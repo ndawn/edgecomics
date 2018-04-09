@@ -22,7 +22,7 @@ class XLSGenerator:
     def __init__(
             self,
             mode,
-            session_timestamp,
+            session,
             file_name=None,
             price_threshold=550,
             xls_dir='xls',
@@ -31,8 +31,8 @@ class XLSGenerator:
             title_above_threshold='Сборники %s',
     ):
         self.mode = mode
-        self.session_timestamp = session_timestamp
-        self.file_name = '%s_%s.xlsx' % (self.mode, self.session_timestamp) if file_name is None else file_name
+        self.session = session
+        self.file_name = '%s_%s.xlsx' % (self.mode, self.session) if file_name is None else file_name
         self.price_threshold = price_threshold
         self.xls_dir = xls_dir
         self.title_under_threshold = title_under_threshold
@@ -54,19 +54,19 @@ class XLSGenerator:
 
     columns = [
         ('Наименование', 'title'),
-        ('Наличие', '100'),
+        ('Наличие', '0'),
         ('Вход', 'bought'),
         ('Цена', 'round(entry.price * entry.discount)'),
-        ('Старая', 'price'),
-        ('Ссылка', 'entry.cover_list["full"]'),
+        ('Ссылка', 'entry.cover_url'),
         ('Вес', 'weight'),
+        ('Описание', 'description'),
     ]
 
     additional_columns = {
         'monthly': [
+            ('Старая', 'price'),
             ('Superior', 'round(entry.price * entry.discount_superior)'),
             ('Дата выхода', 'entry.release_date.strftime("%-d %B %Y")'),
-            ('Описание', 'description'),
         ],
         'weekly': [],
     }
@@ -78,18 +78,18 @@ class XLSGenerator:
         for publisher in PUBLISHERS:
             if self.mode == 'monthly':
                 values_under_threshold = Monthly.objects.filter(
-                    session_timestamp=self.session_timestamp,
+                    session=self.session,
                     publisher=publisher['full_name'],
                     price__lt=self.price_threshold,
                 ).order_by('title')
                 values_above_threshold = Monthly.objects.filter(
-                    session_timestamp=self.session_timestamp,
+                    session=self.session,
                     publisher=publisher['full_name'],
                     price__gte=self.price_threshold,
                 ).order_by('title')
             elif self.mode == 'weekly':
                 values_under_threshold = Weekly.objects.filter(
-                    session_timestamp=self.session_timestamp,
+                    session=self.session,
                     publisher=publisher['full_name'],
                 ).order_by('title')
                 values_above_threshold = []
@@ -129,9 +129,6 @@ class XLSGenerator:
     def _write_values(self, sheet, values):
         for row in range(len(values)):
             entry = values[row]
-
-            while isinstance(entry.cover_list, str):
-                entry.cover_list = json.loads(entry.cover_list)
 
             for col in range(len(self.titles)):
                 self._write_attr(

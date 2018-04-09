@@ -1,5 +1,4 @@
 from django.db import models, IntegrityError
-from django.contrib.postgres.fields import JSONField
 from accounts.models import User
 
 
@@ -131,8 +130,8 @@ class Item(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        blank=True,
         null=True,
+        blank=True,
         verbose_name='Категория',
     )
 
@@ -162,8 +161,8 @@ class Item(models.Model):
     )
 
     quantity = models.IntegerField(
-        null=True,
         default=0,
+        null=True,
         blank=True,
         verbose_name='Количество',
     )
@@ -174,10 +173,11 @@ class Item(models.Model):
         verbose_name='Вес',
     )
 
-    cover_list = JSONField(
-        default=dict,
+    cover_url = models.URLField(
+        default='',
+        null=True,
         blank=True,
-        verbose_name='Список обложек',
+        verbose_name='Адрес обложки',
     )
 
     active = models.BooleanField(
@@ -209,7 +209,7 @@ class Item(models.Model):
             'discount': self.discount,
             'quantity': self.quantity,
             'weight': self.weight,
-            'cover_list': self.cover_list,
+            'cover_url': self.cover_url,
         }
 
     def __str__(self):

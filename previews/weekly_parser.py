@@ -24,13 +24,10 @@ class WeeklyParser(Parser):
     parse_url = 'http://midtowncomics.com/store/ajax_wr_online.asp'
     publishers = filter(lambda x: x.get('load_weekly'), PUBLISHERS)
     release_date_wdate = ''
-    session_timestamp = int(time.time())
+    session = int(time.time())
     page = None
     soup = None
-    cover_urls = [
-        ('full', 'http://midtowncomics.com/images/product/xl/%s_xl.jpg'),
-        ('thumb', 'http://midtowncomics.com/images/product/stnl/%s_sth.jpg'),
-    ]
+    cover_url = 'http://midtowncomics.com/images/product/xl/%s_xl.jpg'
 
     model = Weekly
 
@@ -99,7 +96,7 @@ class WeeklyParser(Parser):
                 'diamond_id': None,
                 'midtown_id': entry['pr_id'],
                 'release_date': self.release_date,
-                'session_timestamp': self.session_timestamp,
+                'session': self.session,
             }
 
             price_origin = entry['pr_lprice']
@@ -118,18 +115,13 @@ class WeeklyParser(Parser):
             params['weight'] = prices.get('weight', DEFAULT_WEIGHT)
             params['discount'] = prices.get('discount', 0.0)
 
-            cover_list = {}
-
-            for url in self.cover_urls:
-                if json.loads(entry['xl']) is True:
-                    _url = url[1] % params['midtown_id']
-                else:
-                    _url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
-
-                cover_list[url[0]] = _url
+            if json.loads(entry['xl']) is True:
+                url = self.cover_url % params['midtown_id']
+            else:
+                url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
 
             model = self.model.objects.create(**params)
-            model.cover_list = cover_list
+            model.cover_url = url
             model.save()
 
             self.parsed.append(model.id)
@@ -144,11 +136,6 @@ class WeeklyParser(Parser):
             self._parse_by_publisher(publisher)
 
     class OneParser(Parser.OneParser):
-        def __init__(self, model):
-            super().__init__()
-
-            self.model = model
-
         description_url = 'http://midtowncomics.com/store/dp.asp'
 
         def postload(self):
@@ -169,41 +156,13 @@ class WeeklyParser(Parser):
 
             return self.model.description
 
-        def download_covers(self):
-            dummy_url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
-            dirs_path = os.path.join(MEDIA_ROOT, 'previews')
-            download_path = os.path.join(dirs_path, '%s/%s')
-            downloaded_url = os.path.join(SITE_ADDRESS, 'media/previews/%s/%s')
+        def store_cover(self):
+            if self.model.cover_url.startswith(SITE_ADDRESS):
+                self.model.cover_url = self.dummy
+                self.model.save()
+                return
 
-            if isinstance(self.model.cover_list, str):
-                self.model.cover_list = json.loads(self.model.cover_list)
-
-            for item in self.model.cover_list.items():
-                if self.model.diamond_id != '':
-                    if item[1] != dummy_url:
-                        filename = item[0] + '.jpg'
-
-                        image_response = requests.get(item[1], stream=True)
-                        image = image_response.raw.read()
-
-                        if self.model.diamond_id:
-                            item_id = self.model.diamond_id
-                        else:
-                            item_id = 'MT' + self.model.midtown_id
-
-                        model_covers_path = os.path.join(dirs_path, item_id)
-
-                        if not os.path.exists(model_covers_path):
-                            os.mkdir(model_covers_path)
-
-                        out_file = open(download_path % (item_id, filename), 'wb')
-                        out_file.write(image)
-                        out_file.close()
-
-                        self.model.cover_list[item[0]] = downloaded_url % (item_id, filename)
-                else:
-                    self.model.cover_list[item[0]] = dummy_url
-
-            self.model.save()
-
-            return self.model.cover_list
+            response = self.capella.upload_url(self.model.cover_url)
+            if response['success']:
+                self.model.cover_url = response['url']
+                self.model.save()

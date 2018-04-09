@@ -12,6 +12,7 @@ from commerce.models import DEFAULT_WEIGHT
 from bs4 import BeautifulSoup
 import titlecase
 import requests
+from pycapella import Capella
 
 
 class MonthlyParser(Parser):
@@ -25,10 +26,7 @@ class MonthlyParser(Parser):
     release_date_batch = ''
     page = None
     soup = None
-    cover_urls = {
-        'full': 'https://previewsworld.com/siteimage/catalogimage/%s?type=1',
-        'thumb': 'https://previewsworld.com/siteimage/catalogthumbnail/%s?type=1',
-    }
+    cover_url = 'https://previewsworld.com/siteimage/catalogimage/%s?type=1'
     model = Monthly
 
     def _process_title(self, title):
@@ -46,15 +44,7 @@ class MonthlyParser(Parser):
     def _set_date(self):
         if self.release_date is not None:
             self.release_date = datetime.datetime.strptime(self.release_date, '%Y-%m-%d')
-
-            if self.release_date.month > 2:
-                month = self.release_date.month - 2
-                year = self.release_date.year
-            else:
-                month = self.release_date.month + 10
-                year = self.release_date.year - 1
-
-            self.release_date_batch = self.release_date.replace(year=year, month=month).strftime('%b%y')
+            self.release_date_batch = self.release_date.strftime('%b%y')
 
     def _delete_old(self):
         self.model.objects.filter(release_date__month=self.release_date.month).delete()
@@ -69,7 +59,7 @@ class MonthlyParser(Parser):
             date_string = date_container.find_all('strong')[-1].text
 
             self.release_date = datetime.datetime.strptime(date_string, '%B %Y')
-            self.release_date_batch = self.release_date.replace(year=year, month=month).strftime('%b%y')
+            self.release_date_batch = self.release_date.strftime('%b%y')
         else:
             raise ValueError('The soup is not yet cooked')
 
@@ -105,10 +95,9 @@ class MonthlyParser(Parser):
 
             cover_element = entry.find('div', {'class': 'nrGalleryItemImage'}).a.img
             cover_name = os.path.basename(cover_element.get('data-src', cover_element.get('src')))
-            cover_list = {k: v % cover_name for (k, v) in self.cover_urls.items()}
 
             model = self.model.objects.create(**params)
-            model.cover_list = cover_list
+            model.cover_url = self.cover_url % cover_name
             model.save()
 
             self.parsed.append(model.id)
@@ -125,11 +114,6 @@ class MonthlyParser(Parser):
             self._parse_by_publisher(publisher)
 
     class OneParser(Parser.OneParser):
-        def __init__(self, model):
-            super().__init__()
-
-            self.model = model
-
         description_url = 'https://previewsworld.com/catalog/%s'
 
         def postload(self):
@@ -170,36 +154,34 @@ class MonthlyParser(Parser):
 
             return self.model.description
 
-        def download_covers(self):
-            dummy_url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
-            dummy_cover = open(os.path.join(MEDIA_ROOT, 'previews/dummy_prwld.png'), 'rb')
-            dirs_path = os.path.join(MEDIA_ROOT, 'previews')
-            download_path = os.path.join(dirs_path, '%s/%s')
-            downloaded_url = os.path.join(SITE_ADDRESS, 'media/previews/%s/%s')
+        def is_dummy(self, url):
+            temp_path = os.path.join(MEDIA_ROOT, 'previews/temp')
 
-            if isinstance(self.model.cover_list, str):
-                self.model.cover_list = json.loads(self.model.cover_list)
+            temp = open(temp_path, 'wb')
+            print(url)
+            temp.write(requests.get(url).content)
+            temp.close()
 
-            for item in self.model.cover_list.items():
-                filename = item[0] + '.jpg'
+            temp = open(temp_path, 'rb')
+            dummy = open(self.vendor_dummy_path, 'rb')
 
-                image_response = requests.get(item[1], stream=True)
-                image = image_response.raw.read()
+            res = temp.read() == dummy.read()
 
-                if image != dummy_cover.read():
-                    model_covers_path = os.path.join(dirs_path, self.model.diamond_id)
+            temp.close()
+            dummy.close()
 
-                    if not os.path.exists(model_covers_path):
-                        os.mkdir(model_covers_path)
+            return res
 
-                    out_file = open(download_path % (self.model.diamond_id, filename), 'wb')
-                    out_file.write(image)
-                    out_file.close()
+        def store_cover(self):
+            response = self.capella.upload_url(self.model.cover_url)
 
-                    self.model.cover_list[item[0]] = downloaded_url % (self.model.diamond_id, filename)
+            if response['success']:
+                print(response)
+                self.capella.resize(self.vendor_dummy_width)
+
+                if self.is_dummy(self.capella.get_url()):
+                    self.model.cover_url = self.dummy
                 else:
-                    self.model.cover_list[item[0]] = dummy_url
+                    self.model.cover_url = response['url']
 
-            self.model.save()
-
-            return self.model.cover_list
+                self.model.save()

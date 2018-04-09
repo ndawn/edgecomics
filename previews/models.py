@@ -473,7 +473,7 @@ class Preview(Item):
         verbose_name='Дата выхода',
     )
 
-    session_timestamp = models.BigIntegerField(
+    session = models.BigIntegerField(
         null=True,
         verbose_name='Сессия',
     )

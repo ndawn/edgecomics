@@ -52,7 +52,7 @@ class ParserView(View):
         parser.parse()
 
         return HttpResponse(
-            json.dumps({'entry_list': parser.parsed, 'session_timestamp': parser.session_timestamp}),
+            json.dumps({'entry_list': parser.parsed, 'session': parser.session}),
             content_type='application/json',
         )
 
@@ -60,19 +60,37 @@ class ParserView(View):
         mode = request.GET.get('mode')
 
         if mode is None:
-            return HttpResponseBadRequest(json.dumps({'error': 'no mode specified'}), content_type='application/json')
+            return HttpResponseBadRequest(
+                json.dumps({'error': 'no mode specified'}),
+                content_type='application/json',
+            )
+
+        if mode == 'monthly':
+            dummy_specs = ('dummy_prwld.png', 120)
+        elif mode == 'weekly':
+            dummy_specs = ('dummy_mdtwn.jpg', 300)
 
         mode = mode.capitalize()
 
-        parser = globals()[mode + 'Parser'].OneParser(globals()[mode].objects.get(id=request.GET.get('id')))
+        glob_parser = globals()[mode + 'Parser']
+        model = globals()[mode]
+
+        parser = glob_parser.OneParser(
+            model.objects.get(id=request.GET.get('id')),
+            dummy_specs,
+        )
 
         parser.postload()
-        cover_list = parser.download_covers()
+        parser.store_cover()
+        parser.capella.resize(120)
+        thumb = parser.capella.get_url()
 
         return HttpResponse(
-            json.dumps({'cover': cover_list['thumb'],
-                        'title': parser.model.title}, separators=[',', ':']),
-            content_type='application/json'
+            json.dumps({
+                'cover': thumb,
+                'title': parser.model.title
+            }, separators=[',', ':']),
+            content_type='application/json',
         )
 
     def upload(self, request: HttpRequest) -> HttpResponse:
@@ -81,7 +99,7 @@ class ParserView(View):
     def price(self, request: HttpRequest) -> HttpResponse:
         xls = XLSGenerator(
             request.GET.get('mode'),
-            request.GET.get('session_timestamp'),
+            request.GET.get('session'),
             title_under_threshold='Предзаказы %s' if request.GET.get('mode') == 'weekly' else 'Синглы %s',
         )
 
