@@ -1,5 +1,5 @@
 from django.contrib import admin
-from commerce.models import Category, Item, CartItem, Order, OrderStatus, PaymentMethod, DeliveryMethod
+from commerce.models import Category, Item, CartItem, Order, OrderStatus, PaymentMethod, DeliveryMethod, Publisher
 
 
 @admin.register(Category)
@@ -35,3 +35,8 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 @admin.register(DeliveryMethod)
 class DeliveryMethodAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Publisher)
+class PublisherAdmin(admin.ModelAdmin):
+    list_display = ['id', 'full_name', 'load_weekly']

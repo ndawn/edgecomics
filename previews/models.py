@@ -412,50 +412,6 @@ PRICES = {
 }
 
 
-PUBLISHERS = [
-    {
-        'short_name': 'Marvel',
-        'full_name': 'Marvel Comics',
-        'category': None,
-        'abbr': 'MARVEL',
-        'midtown_code': '75,110',
-        'load_weekly': True,
-    },
-    {
-        'short_name': 'DC',
-        'full_name': 'DC Comics',
-        'category': None,
-        'abbr': 'DC',
-        'midtown_code': '71,105',
-        'load_weekly': True,
-    },
-    {
-        'short_name': 'Image',
-        'full_name': 'Image Comics',
-        'category': None,
-        'abbr': 'IMAGE',
-        'midtown_code': '74,112',
-        'load_weekly': True,
-    },
-    {
-        'short_name': 'IDW',
-        'full_name': 'IDW Publishing',
-        'category': None,
-        'abbr': 'IDW',
-        'midtown_code': '140,141',
-        'load_weekly': True,
-    },
-    {
-        'short_name': 'Dark Horse',
-        'full_name': 'Dark Horse Comics',
-        'category': None,
-        'abbr': 'DH',
-        'midtown_code': '77,127',
-        'load_weekly': False,
-    },
-]
-
-
 class Preview(Item):
     price_origin = models.FloatField(
         default=0.0,

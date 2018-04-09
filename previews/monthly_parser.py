@@ -3,11 +3,11 @@ import datetime
 import json
 import re
 
-from previews.models import Monthly, PUBLISHERS, PRICES
+from previews.models import Monthly, PRICES
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import SITE_ADDRESS
-from commerce.models import DEFAULT_WEIGHT
+from commerce.models import DEFAULT_WEIGHT, Publisher
 
 from bs4 import BeautifulSoup
 import titlecase
@@ -22,7 +22,7 @@ class MonthlyParser(Parser):
         self._set_date()
 
     parse_url = 'https://previewsworld.com/catalog'
-    publishers = PUBLISHERS
+    publishers = Publisher.objects.all()
     release_date_batch = ''
     page = None
     soup = None
@@ -64,16 +64,16 @@ class MonthlyParser(Parser):
             raise ValueError('The soup is not yet cooked')
 
     def _parse_by_publisher(self, publisher):
-        entries = self.soup.find('div', {'id': 'NewReleases_' + publisher['abbr']}) \
+        entries = self.soup.find('div', {'id': 'NewReleases_' + publisher.abbreviature}) \
                            .find_all('div', {'class': 'nrGalleryItem'})
 
         for entry in entries:
             params = {
                 'title': self._process_title(entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')),
-                'publisher': publisher['full_name'],
+                'publisher': publisher.full_name,
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
-                'session_timestamp': self.session_timestamp,
+                'session': self.session,
             }
 
             price_origin = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')

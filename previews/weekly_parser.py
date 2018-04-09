@@ -4,11 +4,11 @@ import time
 import json
 import re
 
-from previews.models import Weekly, PUBLISHERS, PRICES
+from previews.models import Weekly, PRICES
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import SITE_ADDRESS
-from commerce.models import DEFAULT_WEIGHT
+from commerce.models import DEFAULT_WEIGHT, Publisher
 
 from bs4 import BeautifulSoup
 import requests
@@ -22,7 +22,7 @@ class WeeklyParser(Parser):
         self._set_date()
 
     parse_url = 'http://midtowncomics.com/store/ajax_wr_online.asp'
-    publishers = filter(lambda x: x.get('load_weekly'), PUBLISHERS)
+    publishers = filter(lambda x: getattr(x, 'load_weekly'), Publisher.objects.all())
     release_date_wdate = ''
     session = int(time.time())
     page = None
@@ -72,7 +72,7 @@ class WeeklyParser(Parser):
 
     def _request_entries(self, publisher):
         print('WDATE:', self.release_date_wdate)
-        raw = requests.get(self.parse_url, {'cat': publisher['midtown_code'], 'wdate': self.release_date_wdate}).text
+        raw = requests.get(self.parse_url, {'cat': publisher.midtown_code, 'wdate': self.release_date_wdate}).text
         return WeeklyParser._convert_response(raw)
 
     def _date_from_soup(self):
@@ -91,7 +91,7 @@ class WeeklyParser(Parser):
         for entry in entries:
             params = {
                 'title': self._process_title(entry['pr_ttle']),
-                'publisher': publisher['full_name'],
+                'publisher': publisher.full_name,
                 'quantity': None,
                 'diamond_id': None,
                 'midtown_id': entry['pr_id'],
