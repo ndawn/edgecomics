@@ -109,6 +109,61 @@ class Category(models.Model):
         return ' -> '.join(reversed(self.get_parent_chain()))
 
 
+class Publisher(models.Model):
+    class Meta:
+        verbose_name = 'Издатель'
+        verbose_name_plural = 'Издатели'
+
+    full_name = models.CharField(
+        default='',
+        null=True,
+        blank=True,
+        max_length=256,
+        verbose_name='Полное название',
+    )
+
+    short_name = models.CharField(
+        default='',
+        null=True,
+        blank=True,
+        max_length=256,
+        verbose_name='Краткое название',
+    )
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Категория',
+    )
+
+    abbreviature = models.CharField(
+        default='',
+        null=True,
+        blank=True,
+        max_length=64,
+        verbose_name='Аббревиатура',
+    )
+
+    midtown_code = models.CharField(
+        default='',
+        null=True,
+        blank=True,
+        max_length=128,
+        verbose_name='Код Midtown',
+    )
+
+    load_weekly = models.BooleanField(
+        default=True,
+        blank=True,
+        verbose_name='Недельный',
+    )
+
+    def __str__(self):
+        return 'Publisher: ' + self.full_name
+
+
 class Item(models.Model):
     class Meta:
         verbose_name = 'Товар'
@@ -135,10 +190,11 @@ class Item(models.Model):
         verbose_name='Категория',
     )
 
-    publisher = models.CharField(
-        default='',
+    publisher = models.ForeignKey(
+        Publisher,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        max_length=32,
         verbose_name='Издатель',
     )
 
@@ -495,55 +551,3 @@ class Order(models.Model):
             'created': self.created,
             'updated': self.updated,
         }
-
-
-class Publisher(models.Model):
-    class Meta:
-        verbose_name = 'Издатель'
-        verbose_name_plural = 'Издатели'
-
-    full_name = models.CharField(
-        default='',
-        null=True,
-        blank=True,
-        max_length=256,
-        verbose_name='Полное название',
-    )
-
-    short_name = models.CharField(
-        default='',
-        null=True,
-        blank=True,
-        max_length=256,
-        verbose_name='Краткое название',
-    )
-
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name='Категория',
-    )
-
-    abbreviature = models.CharField(
-        default='',
-        null=True,
-        blank=True,
-        max_length=64,
-        verbose_name='Аббревиатура',
-    )
-
-    midtown_code = models.CharField(
-        default='',
-        null=True,
-        blank=True,
-        max_length=128,
-        verbose_name='Код Midtown',
-    )
-
-    load_weekly = models.BooleanField(
-        default=True,
-        blank=True,
-        verbose_name='Недельный',
-    )

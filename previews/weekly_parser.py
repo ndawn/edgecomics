@@ -91,7 +91,7 @@ class WeeklyParser(Parser):
         for entry in entries:
             params = {
                 'title': self._process_title(entry['pr_ttle']),
-                'publisher': publisher.full_name,
+                'publisher': publisher,
                 'quantity': None,
                 'diamond_id': None,
                 'midtown_id': entry['pr_id'],

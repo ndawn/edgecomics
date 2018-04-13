@@ -3,8 +3,8 @@ import time
 import locale
 import json
 
+from commerce.models import Publisher
 from previews.models import Monthly, Weekly
-from previews.models import PUBLISHERS
 from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
 
 import xlsxwriter
@@ -30,6 +30,8 @@ class XLSGenerator:
             title_under_threshold='Синглы %s',
             title_above_threshold='Сборники %s',
     ):
+        locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+
         self.mode = mode
         self.session = session
         self.file_name = '%s_%s.xlsx' % (self.mode, self.session) if file_name is None else file_name
@@ -51,6 +53,9 @@ class XLSGenerator:
 
         if os.path.exists(self.file_path):
             os.remove(self.file_path)
+
+    def __del__(self):
+        locale.setlocale(locale.LC_TIME, '')
 
     columns = [
         ('Наименование', 'title'),
@@ -75,32 +80,32 @@ class XLSGenerator:
     shift_y = 1
 
     def generate(self):
-        for publisher in PUBLISHERS:
+        for publisher in Publisher.objects.all():
             if self.mode == 'monthly':
                 values_under_threshold = Monthly.objects.filter(
                     session=self.session,
-                    publisher=publisher['full_name'],
+                    publisher=publisher.full_name,
                     price__lt=self.price_threshold,
                 ).order_by('title')
                 values_above_threshold = Monthly.objects.filter(
                     session=self.session,
-                    publisher=publisher['full_name'],
+                    publisher=publisher.full_name,
                     price__gte=self.price_threshold,
                 ).order_by('title')
             elif self.mode == 'weekly':
                 values_under_threshold = Weekly.objects.filter(
                     session=self.session,
-                    publisher=publisher['full_name'],
+                    publisher=publisher.full_name,
                 ).order_by('title')
                 values_above_threshold = []
 
             self._write_sheet(
-                self.title_under_threshold % (publisher['short_name']),
+                self.title_under_threshold % (publisher.short_name),
                 values_under_threshold,
             )
 
             self._write_sheet(
-                self.title_above_threshold % (publisher['short_name']),
+                self.title_above_threshold % (publisher.short_name),
                 values_above_threshold,
             )
 
