@@ -45,10 +45,10 @@ let previews = (() => {
 
         submitButton.addEventListener('click', (event) => {
 
-            if (form.group_id.value === '') {
+            if (form.group_id.value === '' || datesBox === null) {
 
                 submitButton.setAttribute('disabled', '');
-                submitButton.setAttribute('alt', 'Выберите группу для загрузки')
+                submitButton.setAttribute('alt', 'Заполните все параметры')
 
             } else {
 
@@ -94,8 +94,12 @@ let previews = (() => {
                 group.classList.add('selected');
                 form.group_id.value = group.dataset.id;
 
-                submitButton.removeAttribute('disabled');
-                submitButton.removeAttribute('alt');
+                if (datesBox !== null) {
+
+                    submitButton.removeAttribute('disabled');
+                    submitButton.removeAttribute('alt');
+
+                }
 
             });
 

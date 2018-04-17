@@ -171,6 +171,7 @@ body {
     transition : background 0.2s ease;
     color : white;
     background : #5181b8;
+    text-decoration : none;
     cursor : pointer;
 }
 
