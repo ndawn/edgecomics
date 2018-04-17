@@ -4,15 +4,89 @@
     <meta charset="utf-8">
     <title>Загрузчик обложек в ВКонтакте</title>
     {% load static %}
+    {% load dates %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&amp;subset=cyrillic-ext" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/vkuploader.css' %}">
 </head>
 <body>
-
-    <script type="text/javascript" src="/static/js/receiver.js"></script>
-    <script type="text/javascript" src="/static/js/vkUploader.js"></script>
-    <script type="text/javascript" src="/static/js/vkUploaderControls.js"></script>
+    <form action="/previews/upload/" method="get" id="form">
+        <input type="hidden" name="group_id" value="">
+        {% csrf_token %}
+    </form>
+    <main class="main-layer">
+        <aside class="aside-box">
+            <div class="logo-box">
+                <a href="/" class="logo">EDGE</a>
+            </div>
+            <hr class="separator-line">
+            <ul class="menu-list">
+                <li class="menu-list-item">Загрузка в базу данных</li>
+                <li class="menu-list-item selected">Загрузка в ВКонтакте</li>
+                <li class="menu-list-item">Генерация прайса</li>
+            </ul>
+        </aside>
+        <section class="main-box form-box" id="form-box">
+            <h1 class="heading">Выберите группу для загрузки</h1>
+            <hr class="separator-line">
+            <div class="groups-box">
+                {% for group in groups %}
+                <div class="group-box" data-id="{{ group.id }}">
+                    <img class="group-avatar" src="{{ group.photo_100 }}" alt="{{ group.name }}">
+                    <p class="group-name">{{ group.name }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <hr class="separator-line">
+            <h1 class="heading">Выберите предзаказы для загрузки</h1>
+            <hr class="separator-line">
+            {% if dates %}
+                <select class="dates-box" name="session" form="form" id="dates-box">
+                    {% for date in dates %}
+                    <option value="{{ date.session }}">
+                        {% if date.mode == 'monthly' %}
+                            Месяц:
+                            {{ date.release_date|format_date:False }},
+                            Загружено
+                            {{ date.session|format_timestamp }}
+                        {% elif date.mode == 'weekly' %}
+                            Неделя:
+                            {{ date.release_date|format_date:True }},
+                            {{ date.session|format_timestamp }}
+                        {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <p class="paragraph">Нет доступных предзаказов для загрузки</p>
+                <a class="button" href="/previews/">Перейти к загрузке в базу данных</a>
+            {% endif %}
+            <hr class="separator-line">
+            <h1 class="heading">Введите ссылку для вставки в описание изображения</h1>
+            <hr class="separator-line">
+            <input class="msg_link-box" type="text" name="msg_link" form="form" id="msg-link-box">
+            <button class="button" id="submit-button" type="button" alt="Выберите группу для загрузки" disabled>Начать загрузку</button>
+        </section>
+        <section class="main-box loading-box hidden" id="loading-box">
+            <svg class="loading-animation" id="loading-animation" viewBox="50 50 100 100">
+                <circle class="loading-animation-circle" cx="100" cy="100" r="45" fill="none" stroke-width="1" stroke-miterlimit="10"></circle>
+            </svg>
+            <p class="paragraph">Здесь должен быть прогресс-бар, но его пока нет ¯\_(ツ)_/¯</p>
+            <div class="progress-box hidden">
+                <div class="progress-bar"></div>
+            </div>
+        </section>
+        <section class="main-box complete-box hidden" id="complete-box">
+            <svg width="102" height="102" viewBox="0 0 102 102" fill="none" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M 50 -0.5C 77.3032 -0.5 100.5 22.6968 100.5 50C 100.5 63.6701 94.1788 76.2939 84.7237 85.4935C 75.2705 94.6912 62.6499 100.5 50 100.5C 24.7458 100.5 -0.5 78.676 -0.5 50C -0.5 21.3367 22.7057 -0.5 50 -0.5Z" stroke-miterlimit="8" transform="translate(1 1)" stroke="#4777AE"/>
+                <path d="M 49.5 0L 15.5 34L 0 18.5" transform="translate(26 34)" stroke="#4777AE"/>
+            </svg>
+            <p class="paragraph">Загрузка завершена</p>
+            <button class="button" type="button" id="repeat-button">Повторить загрузку</button>
+        </section>
+    </main>
+    <script type="text/javascript" src="{% static 'js/previews.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/receiver.js' %}"></script>
 </body>
 </html>

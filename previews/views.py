@@ -91,8 +91,8 @@ class ParserView(View):
             content_type='application/json',
         )
 
-    def upload(self, request):
-        group_id = request.GET.get('group_id')
+    def post(self, request):
+        group_id = request.POST.get('group_id')
 
         if group_id is None:
             return HttpResponseBadRequest(
@@ -100,7 +100,7 @@ class ParserView(View):
                 content_type='application/json',
             )
 
-        session = request.GET.get('session')
+        session = request.POST.get('session')
 
         if session is None:
             return HttpResponseBadRequest(
@@ -108,7 +108,7 @@ class ParserView(View):
                 content_type='application/json',
             )
 
-        uploader = VKUploader(group_id, session, options={'msg_link': request.GET.get('msg_link')})
+        uploader = VKUploader(group_id, session, options={'msg_link': request.POST.get('msg_link')})
         uploader.upload()
 
         return HttpResponse(json.dumps({'success': True}), content_type='application/json')

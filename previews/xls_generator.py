@@ -84,18 +84,18 @@ class XLSGenerator:
             if self.mode == 'monthly':
                 values_under_threshold = Monthly.objects.filter(
                     session=self.session,
-                    publisher=publisher.full_name,
+                    publisher=publisher,
                     price__lt=self.price_threshold,
                 ).order_by('title')
                 values_above_threshold = Monthly.objects.filter(
                     session=self.session,
-                    publisher=publisher.full_name,
+                    publisher=publisher,
                     price__gte=self.price_threshold,
                 ).order_by('title')
             elif self.mode == 'weekly':
                 values_under_threshold = Weekly.objects.filter(
                     session=self.session,
-                    publisher=publisher.full_name,
+                    publisher=publisher,
                 ).order_by('title')
                 values_above_threshold = []
 

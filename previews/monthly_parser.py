@@ -1,4 +1,5 @@
 import os.path
+import locale
 import datetime
 import json
 import re
@@ -20,6 +21,8 @@ class MonthlyParser(Parser):
         super().__init__(*args, **kwargs)
 
         self._set_date()
+
+        locale.setlocale(locale.LC_TIME, 'en_GB.UTF-8')
 
     parse_url = 'https://previewsworld.com/catalog'
     publishers = Publisher.objects.all()

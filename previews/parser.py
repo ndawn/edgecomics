@@ -1,4 +1,5 @@
 import os
+import locale
 import datetime
 import time
 import requests
@@ -13,9 +14,10 @@ from pycapella import Capella
 class Parser:
     def __init__(self, release_date=None):
         self.release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d') if release_date is not None else None
-        print('release_date (raw):', release_date, '| release_date (converted):', self.release_date)
         self.session = int(time.time())
-        print('session:', self.session)
+
+    def __del__(self):
+        locale.setlocale(locale.LC_TIME, '')
 
     parse_url = ''
     parse_engine = 'lxml'
@@ -49,13 +51,11 @@ class Parser:
 
     @staticmethod
     def mode_and_date_from_session(session):
-        dates = Preview.objects.filter(session=session).distinct('release_date').values('release_date')
-
-        print(dates)
-
-        dates = list(filter(lambda x: x['release_date'] is not None, dates))
-
-        print(dates)
+        dates = [
+            x['release_date']
+            for x in Preview.objects.filter(session=session).distinct('release_date').values('release_date')
+        ]
+        dates = list(filter(lambda x: x is not None, dates))
 
         if len(dates) == 1:
             return {
@@ -64,9 +64,14 @@ class Parser:
                 'session': session,
             }
         else:
+            try:
+                release_date = min(dates).replace(day=1),
+            except ValueError:
+                release_date = None
+
             return {
                 'mode': 'monthly',
-                'release_date': min([x['release_date'] for x in dates]).replace(day=1),
+                'release_date': release_date,
                 'session': session,
             }
 

@@ -1,9 +1,10 @@
 import os.path
+import locale
 import time
 
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import VK_ACCESS_TOKEN, VK_API_VERSION
-from edgecomics.queues import Sender
+#from edgecomics.queues import Sender
 from previews.parser import Parser
 from previews.models import Preview
 from commerce.models import Publisher
@@ -28,6 +29,8 @@ class VKUploader:
 
         self.mode = mode_and_date['mode']
         self.release_date = mode_and_date['release_date']
+        if isinstance(self.release_date, tuple):
+            self.release_date = self.release_date[0]
 
     @staticmethod
     def api():
@@ -41,7 +44,7 @@ class VKUploader:
     def upload(self):
         locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
-        sender = Sender('vk')
+        #sender = Sender('vk')
 
         for publisher in Publisher.objects.all():
             correct = lambda d: d + 'а' if d.endswith('т') else d[:-1] + 'я'
@@ -95,6 +98,6 @@ class VKUploader:
 
                 print(photo)
 
-                sender.send({'success': True, 'cover': photo['photo_130'], 'title': preview.title})
+                #sender.send({'success': True, 'cover': photo['photo_130'], 'title': preview.title})
 
         locale.setlocale(locale.LC_TIME, '')

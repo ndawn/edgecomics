@@ -73,7 +73,7 @@ let parser = (() => {
 
                 queue = response.entry_list;
                 queueLength = queue.length;
-                sessionTimestamp = response.session;
+                session = response.session;
 
                 parserControls.updateProgress(0, 1);
 
