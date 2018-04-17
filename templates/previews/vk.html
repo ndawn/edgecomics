@@ -53,6 +53,7 @@
                         {% elif date.mode == 'weekly' %}
                             Неделя:
                             {{ date.release_date|format_date:True }},
+                            Загружено
                             {{ date.session|format_timestamp }}
                         {% endif %}
                     </option>

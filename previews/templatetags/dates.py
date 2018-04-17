@@ -29,4 +29,4 @@ def format_date(value, day=True):
 def format_timestamp(value):
     date = datetime.datetime.fromtimestamp(value)
     m = correct(date.strftime('%B')).lower()
-    return date.strftime('%d ') + m + date.strftime(' %Y')
+    return date.strftime('%d ') + m + date.strftime(' %Y %H:%M')

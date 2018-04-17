@@ -73,7 +73,7 @@ class VKUploader:
                 file_path = os.path.join(self.local_path, 'file0.jpg')
 
                 file = open(file_path, 'wb')
-                file.write(requests.get(os.path.join(preview.cover_url, 'resize/400')).content)
+                file.write(requests.get(os.path.join(preview.cover_url, ('resize/400' if preview.cover_url.startswith('https://capella.pics') else ''))).content)
                 file.close()
 
                 file = open(file_path, 'rb')

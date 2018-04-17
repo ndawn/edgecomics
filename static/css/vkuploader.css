@@ -151,11 +151,11 @@ body {
 }
 
 .dates-box {
-    width : 472px;
+    width : 554px;
 }
 
 .msg_link-box {
-    width : 436px;
+    width : 518px;
     text-align : center;
 }
 
@@ -163,7 +163,7 @@ body {
     display : block;
     margin : auto;
     padding : 12px 18px;
-    width : 472px;
+    width : 554px;
     font-size : 18px;
     border-radius : 3px;
     border : none;
