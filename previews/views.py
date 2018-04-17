@@ -5,8 +5,10 @@ from django.shortcuts import render
 from django.views import View
 from edgecomics.config import SITE_ADDRESS, HAWK_TOKEN
 from previews.models import Monthly, Weekly
+from previews.parser import Parser
 from previews.monthly_parser import MonthlyParser
 from previews.weekly_parser import WeeklyParser
+from previews.vk_uploader import VKUploader
 from previews.xls_generator import XLSGenerator
 
 from hawkcatcher import Hawk
@@ -18,14 +20,7 @@ class ParserView(View):
 
         self.hawk = Hawk(HAWK_TOKEN)
 
-    method_list = [
-        'parse',
-        'postparse',
-        'upload',
-        'price',
-    ]
-
-    def get(self, request: HttpRequest, method: str = None) -> HttpResponse:
+    def get(self, request, method=None):
         if method is None:
             return render(request, 'previews/index.html')
         else:
@@ -40,7 +35,10 @@ class ParserView(View):
             else:
                 return HttpResponseBadRequest()
 
-    def parse(self, request: HttpRequest) -> HttpResponse:
+    def vk(self, request):
+        return render(request, 'previews/vk.html', {'groups': VKUploader.list_groups(), 'dates': Parser.list_dates()})
+
+    def parse(self, request):
         try:
             parser = globals()[request.GET.get('mode').capitalize() + 'Parser'](request.GET.get('release_date', None))
         except (KeyError, AttributeError):
@@ -56,7 +54,7 @@ class ParserView(View):
             content_type='application/json',
         )
 
-    def postparse(self, request: HttpRequest) -> HttpResponse:
+    def postparse(self, request):
         mode = request.GET.get('mode')
 
         if mode is None:
@@ -66,9 +64,9 @@ class ParserView(View):
             )
 
         if mode == 'monthly':
-            dummy_specs = ('dummy_prwld.png', 120)
+            dummy_specs = ('dummy_prwld.png', 120, 180)
         elif mode == 'weekly':
-            dummy_specs = ('dummy_mdtwn.jpg', 300)
+            dummy_specs = ('dummy_mdtwn.jpg', 300, 462)
 
         mode = mode.capitalize()
 
@@ -93,10 +91,29 @@ class ParserView(View):
             content_type='application/json',
         )
 
-    def upload(self, request: HttpRequest) -> HttpResponse:
-        pass
+    def post(self, request):
+        group_id = request.POST.get('group_id')
 
-    def price(self, request: HttpRequest) -> HttpResponse:
+        if group_id is None:
+            return HttpResponseBadRequest(
+                json.dumps({'error': 'no group id specified'}),
+                content_type='application/json',
+            )
+
+        session = request.POST.get('session')
+
+        if session is None:
+            return HttpResponseBadRequest(
+                json.dumps({'error': 'no session specified'}),
+                content_type='application/json',
+            )
+
+        uploader = VKUploader(group_id, session, options={'msg_link': request.POST.get('msg_link')})
+        uploader.upload()
+
+        return HttpResponse(json.dumps({'success': True}), content_type='application/json')
+
+    def price(self, request):
         xls = XLSGenerator(
             request.GET.get('mode'),
             request.GET.get('session'),

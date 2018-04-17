@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700|Righteous&subset=cyrillic');
+
+
+.hidden {
+    display : none !important;
+}
+
+body {
+    margin : 0;
+    padding : 0;
+    font-family : 'Open Sans', sans-serif;
+    font-size : 13px;
+    color : #333333;
+    background : #eeeeee;
+}
+
+.aside-box {
+    position : fixed;
+    margin-left : 780px;
+    width : 220px;
+    overflow : hidden;
+    border-radius : 3px;
+    border : 1px solid #e8e8e8;
+    background : white;
+}
+
+.logo-box {
+    text-align : center;
+}
+
+.logo {
+    width : 220px;
+    line-height : 95px;
+    text-align : center;
+    font-family : 'Righteous';
+    font-size : 64px;
+    color : black;
+    text-decoration : none;
+}
+
+.separator-line {
+    margin : 0 12px;
+    height : 0;
+    border : none;
+    border-top : 1px solid #e8e8e8;
+}
+
+.menu-list {
+    margin : 0;
+    padding : 5px 0;
+    list-style : none;
+}
+
+.menu-list-item {
+    padding : 0 18px;
+    line-height : 32px;
+    transition : all 0.2s ease;
+    color : #666666;
+    cursor : pointer;
+}
+
+.menu-list-item:hover {
+    color : black;
+    background : #f0f2f5;
+}
+
+.menu-list-item.selected {
+    padding-left : 16px;
+    border-left : 2px solid #5181b8;
+    color : black;
+    background : #f0f2f5;
+}
+
+.main-layer {
+    margin : 54px auto;
+    max-width : 1000px;
+}
+
+.main-box {
+    padding : 54px 0;
+    max-width : 756px;
+    text-align : center;
+    border-radius : 3px;
+    border : 1px solid #e8e8e8;
+    background : white;
+}
+
+.heading {
+    font-size : 24px;
+    font-weight : normal;
+}
+
+.paragraph {
+    font-size : 14px;
+}
+
+.groups-box {
+    display : flex;
+    padding : 24px 0;
+    justify-content : center;
+}
+
+.group-box {
+    margin : 0 18px;
+    padding : 18px 12px;
+    width : 200px;
+    border-radius : 3px;
+    border : 1px solid #e8e8e8;
+    transition : all 0.2s ease;
+    background : white;
+    cursor : pointer;
+}
+
+.group-box:hover,
+.group-box.selected {
+    border-color : #5181b8;
+    background : #f0f2f5;
+}
+
+.group-avatar {
+    border-radius : 50%;
+}
+
+.group-name {
+    font-size : 14px;
+    margin-bottom : 0;
+}
+
+.group-box.selected .group-name {
+    color : #5181b8;
+}
+
+.dates-box,
+.msg_link-box {
+    margin : 24px 0;
+    padding : 12px 18px;
+    font-size : 18px;
+    border-radius : 3px;
+    border : 1px solid #e8e8e8;
+    outline : none;
+    transition : border-color 0.2s ease;
+    color : #333333;
+    background : white;
+}
+
+.dates-box:hover,
+.dates-box:focus,
+.msg_link-box:hover,
+.msg_link-box:focus {
+    border-color : #5181b8;
+}
+
+.dates-box {
+    width : 554px;
+}
+
+.msg_link-box {
+    width : 518px;
+    text-align : center;
+}
+
+.button {
+    display : block;
+    margin : auto;
+    padding : 12px 18px;
+    width : 554px;
+    font-size : 18px;
+    border-radius : 3px;
+    border : none;
+    outline : none;
+    transition : background 0.2s ease;
+    color : white;
+    background : #5181b8;
+    text-decoration : none;
+    cursor : pointer;
+}
+
+.button:hover {
+    background : #4070a7;
+}
+
+.button[disabled] {
+    color : #dddddd;
+    background : #bbbbcc;
+    cursor : not-allowed;
+}
+
+.parser-button {
+    outline : 1px solid #2d8cc1;
+    background : #2d9cdb;
+}
+
+.parser-button:hover {
+    outline-color : #1166dd;
+    background : #1981f8;
+}
+
+.loading-animation {
+    width : 100px;
+    height : 100px;
+    stroke : black;
+    transform-origin : center center;
+    animation : rotate 1.5s linear infinite;
+}
+
+.loading-animation-circle {
+    stroke-dasharray : 1, 400;
+    stroke-dashoffset : 0;
+    stroke-linecap : round;
+    animation : dash 1.25s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform : rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray : 1, 400;
+        stroke-dashoffset : 0;
+    }
+
+    50% {
+        stroke-dasharray : 178, 400;
+        stroke-dashoffset : -70px;
+    }
+
+    100% {
+        stroke-dasharray : 178, 400;
+        stroke-dashoffset : -248px;
+    }
+}
+
+.progress-box {
+    margin : 0 12px;
+    height : 20px;
+    border-radius : 3px;
+    overflow : hidden;
+    background : #e8e8e8;
+}
+
+.progress-bar {
+    width : 0;
+    height : 100%;
+    background : #5181b8;
+}

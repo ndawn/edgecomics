@@ -1,4 +1,5 @@
 import os.path
+import locale
 import datetime
 import json
 import re
@@ -20,6 +21,8 @@ class MonthlyParser(Parser):
         super().__init__(*args, **kwargs)
 
         self._set_date()
+
+        locale.setlocale(locale.LC_TIME, 'en_GB.UTF-8')
 
     parse_url = 'https://previewsworld.com/catalog'
     publishers = Publisher.objects.all()
@@ -47,7 +50,7 @@ class MonthlyParser(Parser):
             self.release_date_batch = self.release_date.strftime('%b%y')
 
     def _delete_old(self):
-        self.model.objects.filter(release_date__month=self.release_date.month).delete()
+        self.model.objects.filter(release_date__month=self.release_date.month).delete()  #TODO: rewrite
 
     def _make_soup(self):
         self.page = requests.get(self.parse_url, {'batch': self.release_date_batch})
@@ -64,13 +67,15 @@ class MonthlyParser(Parser):
             raise ValueError('The soup is not yet cooked')
 
     def _parse_by_publisher(self, publisher):
+        print(publisher)
+
         entries = self.soup.find('div', {'id': 'NewReleases_' + publisher.abbreviature}) \
                            .find_all('div', {'class': 'nrGalleryItem'})
 
         for entry in entries:
             params = {
                 'title': self._process_title(entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')),
-                'publisher': publisher.full_name,
+                'publisher': publisher,
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
                 'session': self.session,
@@ -177,7 +182,7 @@ class MonthlyParser(Parser):
 
             if response['success']:
                 print(response)
-                self.capella.resize(self.vendor_dummy_width)
+                self.capella.resize(self.vendor_dummy_width, self.vendor_dummy_height)
 
                 if self.is_dummy(self.capella.get_url()):
                     self.model.cover_url = self.dummy
