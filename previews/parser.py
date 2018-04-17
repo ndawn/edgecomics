@@ -60,7 +60,7 @@ class Parser:
         if len(dates) == 1:
             return {
                 'mode': 'weekly',
-                'release_date': dates[0]['release_date'],
+                'release_date': dates['release_date'] if isinstance(dates, datetime.date) else dates[0]['release_date'],
                 'session': session,
             }
         else:
