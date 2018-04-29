@@ -64,7 +64,6 @@ class XLSGenerator:
         ('Цена', 'round(entry.price * entry.discount)'),
         ('Ссылка', 'entry.cover_url'),
         ('Вес', 'weight'),
-        ('Описание', 'description'),
     ]
 
     additional_columns = {
@@ -72,8 +71,11 @@ class XLSGenerator:
             ('Старая', 'price'),
             ('Superior', 'round(entry.price * entry.discount_superior)'),
             ('Дата выхода', 'entry.release_date.strftime("%-d %B %Y")'),
+            ('Описание', 'description'),
         ],
-        'weekly': [],
+        'weekly': [
+            ('Описание', '"Комикс прибудет на склад в Москву через месяц-полтора после оплаты."'),
+        ],
     }
 
     shift_x = 1

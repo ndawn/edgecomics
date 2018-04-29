@@ -71,7 +71,6 @@ class WeeklyParser(Parser):
         return demjson.decode(response)
 
     def _request_entries(self, publisher):
-        print('WDATE:', self.release_date_wdate)
         raw = requests.get(self.parse_url, {'cat': publisher.midtown_code, 'wdate': self.release_date_wdate}).text
         return WeeklyParser._convert_response(raw)
 
@@ -79,11 +78,9 @@ class WeeklyParser(Parser):
         date_page = requests.get('http://midtowncomics.com/store/weeklyreleasebuy.asp')
         date_soup = BeautifulSoup(date_page.text, self.parse_engine)
         date_string = date_soup.find('option', {'selected': ''})['value']
-        print('date_string:', date_string)
 
         self.release_date = datetime.datetime.strptime(date_string, '%m/%d/%Y')
         self.release_date_wdate = date_string
-        print('release_date (converted):', self.release_date, '| release_date_wdate:', self.release_date_wdate)
 
     def _parse_by_publisher(self, publisher):
         entries = self._request_entries(publisher)
