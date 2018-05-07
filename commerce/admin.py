@@ -1,5 +1,5 @@
 from django.contrib import admin
-from commerce.models import Category, Item, CartItem, Order, OrderStatus, PaymentMethod, DeliveryMethod, Publisher
+from commerce.models import Category, Item, CartItem, Order, OrderStatus, PaymentMethod, DeliveryMethod, Publisher, PriceMap
 
 
 @admin.register(Category)
@@ -9,7 +9,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ['id', 'title', 'category', 'publisher', 'price', 'discount', 'active']
+    list_display = ['id', 'title', 'category', 'publisher', 'price', 'active']
 
 
 @admin.register(CartItem)
@@ -39,4 +39,9 @@ class DeliveryMethodAdmin(admin.ModelAdmin):
 
 @admin.register(Publisher)
 class PublisherAdmin(admin.ModelAdmin):
-    list_display = ['id', 'full_name', 'load_weekly']
+    list_display = ['id', 'full_name', 'load_monthly', 'load_weekly']
+
+
+@admin.register(PriceMap)
+class PriceMapAdmin(admin.ModelAdmin):
+    list_display = ['mode', 'usd', 'bought', 'default', 'discount', 'superior', 'weight']

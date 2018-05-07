@@ -1,10 +1,8 @@
 import os
-import time
 import locale
-import json
 
 from commerce.models import Publisher
-from previews.models import Monthly, Weekly
+from previews.models import Preview
 from edgecomics.settings import MEDIA_ROOT, MEDIA_URL
 
 import xlsxwriter
@@ -60,20 +58,22 @@ class XLSGenerator:
     columns = [
         ('Наименование', 'title'),
         ('Наличие', '0'),
-        ('Вход', 'bought'),
-        ('Цена', 'round(entry.price * entry.discount)'),
-        ('Ссылка', 'entry.cover_url'),
+        ('Вход', 'entry.price_map.bought'),
+        ('Цена', 'entry.price_map.discount'),
+        ('Ссылка', 'cover_url'),
         ('Вес', 'weight'),
-        ('Описание', 'description'),
     ]
 
     additional_columns = {
         'monthly': [
             ('Старая', 'price'),
-            ('Superior', 'round(entry.price * entry.discount_superior)'),
+            ('Superior', 'entry.price_map.superior'),
             ('Дата выхода', 'entry.release_date.strftime("%-d %B %Y")'),
+            ('Описание', 'description'),
         ],
-        'weekly': [],
+        'weekly': [
+            ('Описание', '"Комикс прибудет на склад в Москву через месяц-полтора после оплаты."'),
+        ],
     }
 
     shift_x = 1
@@ -82,18 +82,21 @@ class XLSGenerator:
     def generate(self):
         for publisher in Publisher.objects.all():
             if self.mode == 'monthly':
-                values_under_threshold = Monthly.objects.filter(
+                values_under_threshold = Preview.objects.filter(
+                    mode='monthly',
                     session=self.session,
                     publisher=publisher,
                     price__lt=self.price_threshold,
                 ).order_by('title')
-                values_above_threshold = Monthly.objects.filter(
+                values_above_threshold = Preview.objects.filter(
+                    mode='monthly',
                     session=self.session,
                     publisher=publisher,
                     price__gte=self.price_threshold,
                 ).order_by('title')
             elif self.mode == 'weekly':
-                values_under_threshold = Weekly.objects.filter(
+                values_under_threshold = Preview.objects.filter(
+                    mode='weekly',
                     session=self.session,
                     publisher=publisher,
                 ).order_by('title')

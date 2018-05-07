@@ -2,7 +2,6 @@ import os
 import locale
 import datetime
 import time
-import requests
 
 from previews.models import Preview
 from edgecomics.config import SITE_ADDRESS
@@ -40,45 +39,9 @@ class Parser:
     def parse(self):
         pass
 
-    @staticmethod
-    def list_dates():
-        dates = []
-
-        for preview in Preview.objects.distinct('session'):
-            dates.append(Parser.mode_and_date_from_session(preview.session))
-
-        return dates
-
-    @staticmethod
-    def mode_and_date_from_session(session):
-        dates = [
-            x['release_date']
-            for x in Preview.objects.filter(session=session).distinct('release_date').values('release_date')
-        ]
-        dates = list(filter(lambda x: x is not None, dates))
-
-        if len(dates) == 1:
-            return {
-                'mode': 'weekly',
-                'release_date': dates[0],
-                'session': session,
-            }
-        else:
-            try:
-                release_date = min(dates).replace(day=1),
-            except ValueError:
-                release_date = None
-
-            return {
-                'mode': 'monthly',
-                'release_date': release_date,
-                'session': session,
-            }
-
-
     class OneParser:
-        def __init__(self, model, vendor_dummy):
-            self.model = model
+        def __init__(self, instance, vendor_dummy):
+            self.instance = instance
             self.parse_engine = 'lxml'
 
             self.capella = Capella()

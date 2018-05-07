@@ -1,11 +1,10 @@
 import json
 
-from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseServerError
 from django.shortcuts import render
 from django.views import View
 from edgecomics.config import SITE_ADDRESS, HAWK_TOKEN
-from previews.models import Monthly, Weekly
-from previews.parser import Parser
+from previews.models import Preview
 from previews.monthly_parser import MonthlyParser
 from previews.weekly_parser import WeeklyParser
 from previews.vk_uploader import VKUploader
@@ -36,16 +35,22 @@ class ParserView(View):
                 return HttpResponseBadRequest()
 
     def vk(self, request):
-        return render(request, 'previews/vk.html', {'groups': VKUploader.list_groups(), 'dates': Parser.list_dates()})
+        return render(request, 'previews/vk.html', {'groups': VKUploader.list_groups(), 'dates': Preview.list_dates()})
 
     def parse(self, request):
-        try:
-            parser = globals()[request.GET.get('mode').capitalize() + 'Parser'](request.GET.get('release_date', None))
-        except (KeyError, AttributeError):
-            return HttpResponse(
+        mode = request.GET.get('mode')
+
+        if mode == 'monthly':
+            parser = MonthlyParser
+        elif mode == 'weekly':
+            parser = WeeklyParser
+        else:
+            return HttpResponseBadRequest(
                 json.dumps({'error': 'wrong mode: %s' % request.GET.get('mode')}),
                 content_type='application/json',
             )
+
+        parser = parser(request.GET.get('release_date'))
 
         parser.parse()
 
@@ -64,17 +69,21 @@ class ParserView(View):
             )
 
         if mode == 'monthly':
+            parser = MonthlyParser
             dummy_specs = ('dummy_prwld.png', 120, 180)
         elif mode == 'weekly':
+            parser = WeeklyParser
             dummy_specs = ('dummy_mdtwn.jpg', 300, 462)
+        else:
+            return HttpResponseBadRequest(
+                json.dumps({'error': 'wrong mode: %s' % request.GET.get('mode')}),
+                content_type='application/json',
+            )
 
         mode = mode.capitalize()
 
-        glob_parser = globals()[mode + 'Parser']
-        model = globals()[mode]
-
-        parser = glob_parser.OneParser(
-            model.objects.get(id=request.GET.get('id')),
+        parser = parser.OneParser(
+            Preview.objects.get(id=request.GET.get('id')),
             dummy_specs,
         )
 
@@ -86,7 +95,7 @@ class ParserView(View):
         return HttpResponse(
             json.dumps({
                 'cover': thumb,
-                'title': parser.model.title
+                'title': parser.instance.title
             }, separators=[',', ':']),
             content_type='application/json',
         )
