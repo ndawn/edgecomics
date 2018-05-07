@@ -1,1 +1,0 @@
-gunicorn edgecomics.wsgi:application --bind=unix:/tmp/edgecomics.sock --workers 5 --log-level=debug --timeout 120
