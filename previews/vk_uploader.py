@@ -5,7 +5,6 @@ import time
 from edgecomics.settings import MEDIA_ROOT
 from edgecomics.config import VK_ACCESS_TOKEN, VK_API_VERSION
 #from edgecomics.queues import Sender
-from previews.parser import Parser
 from previews.models import Preview
 from commerce.models import Publisher
 
@@ -25,7 +24,7 @@ class VKUploader:
         else:
             self.msg_link = 'https://vk.me/-%s' % group_id
 
-        mode_and_date = Parser.mode_and_date_from_session(session)
+        mode_and_date = Preview.mode_and_date_from_session(session)
 
         self.mode = mode_and_date['mode']
         self.release_date = mode_and_date['release_date']

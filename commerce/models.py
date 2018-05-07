@@ -5,6 +5,78 @@ from accounts.models import User
 DEFAULT_WEIGHT = 100
 
 
+class PriceMap(models.Model):
+    class Meta:
+        unique_together = (('usd', 'mode'), )
+        verbose_name = 'Таблица цен'
+        verbose_name_plural = 'Таблицы цен'
+
+    MODE_CHOICES = {
+        'monthly': 'Месяц',
+        'weekly': 'Неделя',
+    }
+
+    mode = models.CharField(
+        null=True,
+        max_length=8,
+        choices=MODE_CHOICES.items(),
+        verbose_name='Тип',
+    )
+
+    usd = models.FloatField(
+        default=0.0,
+        verbose_name='Цена в долларах',
+    )
+
+    bought = models.FloatField(
+        default=0.0,
+        blank=True,
+        verbose_name='Закупочная цена',
+    )
+
+    default = models.FloatField(
+        default=0.0,
+        blank=True,
+        verbose_name='Цена',
+    )
+
+    discount = models.FloatField(
+        default=0.0,
+        blank=True,
+        verbose_name='Цена со скидкой',
+    )
+
+    superior = models.FloatField(
+        default=0.0,
+        blank=True,
+        verbose_name='Superior цена',
+    )
+
+    weight = models.FloatField(
+        default=DEFAULT_WEIGHT,
+        blank=True,
+        verbose_name='Вес',
+    )
+
+    def as_dict(self):
+        return {
+            'mode': self.mode,
+            'usd': self.usd,
+            'bought': self.bought,
+            'default': self.default,
+            'discount': self.discount,
+            'superior': self.superior,
+            'weight': self.weight,
+        }
+
+    @staticmethod
+    def dummy():
+        return PriceMap.objects.get(usd=0.0)
+
+    def __str__(self):
+        return self.MODE_CHOICES.get(self.mode, '---') + ': $%.2f' % self.usd
+
+
 class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
@@ -154,6 +226,12 @@ class Publisher(models.Model):
         verbose_name='Код Midtown',
     )
 
+    load_monthly = models.BooleanField(
+        default=True,
+        blank=True,
+        verbose_name='Месячный',
+    )
+
     load_weekly = models.BooleanField(
         default=True,
         blank=True,
@@ -210,12 +288,6 @@ class Item(models.Model):
         verbose_name='Цена',
     )
 
-    discount = models.FloatField(
-        default=1.0,
-        blank=True,
-        verbose_name='Множитель скидки',
-    )
-
     quantity = models.IntegerField(
         default=0,
         null=True,
@@ -262,7 +334,6 @@ class Item(models.Model):
             'category': self.category.as_dict() if self.category is not None else None,
             'publisher': self.publisher,
             'price': self.price,
-            'discount': self.discount,
             'quantity': self.quantity,
             'weight': self.weight,
             'cover_url': self.cover_url,
@@ -543,7 +614,7 @@ class Order(models.Model):
         return {
             'id': self.id,
             'user': self.user.as_dict(),
-            'content': self.content,
+            'cart': self.cart.as_dict(),
             'payment_method': self.payment_method.as_dict(),
             'delivery_method': self.delivery_method.as_dict(),
             'track_code': self.track_code,

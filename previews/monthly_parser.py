@@ -1,19 +1,16 @@
 import os.path
 import locale
 import datetime
-import json
 import re
 
-from previews.models import Monthly, PRICES
+from previews.models import Preview
 from previews.parser import Parser
 from edgecomics.settings import MEDIA_ROOT
-from edgecomics.config import SITE_ADDRESS
-from commerce.models import DEFAULT_WEIGHT, Publisher
+from commerce.models import Publisher, PriceMap
 
 from bs4 import BeautifulSoup
 import titlecase
 import requests
-from pycapella import Capella
 
 
 class MonthlyParser(Parser):
@@ -25,12 +22,11 @@ class MonthlyParser(Parser):
         locale.setlocale(locale.LC_TIME, 'en_GB.UTF-8')
 
     parse_url = 'https://previewsworld.com/catalog'
-    publishers = Publisher.objects.all()
+    publishers = filter(lambda x: getattr(x, 'load_monthly'), Publisher.objects.all())
     release_date_batch = ''
     page = None
     soup = None
     cover_url = 'https://previewsworld.com/siteimage/catalogimage/%s?type=1'
-    model = Monthly
 
     def _process_title(self, title):
         def abbrs(word, **kwargs):
@@ -50,7 +46,7 @@ class MonthlyParser(Parser):
             self.release_date_batch = self.release_date.strftime('%b%y')
 
     def _delete_old(self):
-        self.model.objects.filter(release_date__month=self.release_date.month).delete()  #TODO: rewrite
+        Preview.objects.filter(mode='monthly', release_date__month=self.release_date.month).delete()  #TODO: rewrite
 
     def _make_soup(self):
         self.page = requests.get(self.parse_url, {'batch': self.release_date_batch})
@@ -67,41 +63,42 @@ class MonthlyParser(Parser):
             raise ValueError('The soup is not yet cooked')
 
     def _parse_by_publisher(self, publisher):
-        print(publisher)
-
         entries = self.soup.find('div', {'id': 'NewReleases_' + publisher.abbreviature}) \
                            .find_all('div', {'class': 'nrGalleryItem'})
 
         for entry in entries:
+            title = entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')
+
             params = {
-                'title': self._process_title(entry.find('div', {'class': 'nrGalleryItemTitle'}).text.replace('\xa0', ' ')),
+                'mode': 'monthly',
+                'title_origin': title,
+                'title': self._process_title(title),
                 'publisher': publisher,
                 'quantity': None,
                 'diamond_id': entry.find('div', {'class': 'nrGalleryItemDmdNo'}).text,
                 'session': self.session,
             }
 
-            price_origin = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')
+            usd = entry.find('div', {'class': 'nrGalleryItemSRP'}).text.lstrip('$')
 
             try:
-                price_origin = float(price_origin)
+                usd = float(usd)
             except ValueError:
-                price_origin = 0.0
+                usd = 0.0
 
-            params['price_origin'] = price_origin
+            try:
+                price_map = PriceMap.objects.get(mode='monthly', usd=usd)
+            except (PriceMap.DoesNotExist, PriceMap.MultipleObjectsReturned):
+                price_map = PriceMap.dummy()
 
-            prices = PRICES['monthly'].get(price_origin, {})
-
-            params['price'] = prices.get('price', 0.0)
-            params['bought'] = prices.get('bought', 0.0)
-            params['weight'] = prices.get('weight', DEFAULT_WEIGHT)
-            params['discount'] = prices.get('discount', 0.0)
-            params['discount_superior'] = prices.get('discount_superior', 0.0)
+            params['price_map'] = price_map
+            params['price'] = price_map.default
+            params['weight'] = price_map.weight
 
             cover_element = entry.find('div', {'class': 'nrGalleryItemImage'}).a.img
             cover_name = os.path.basename(cover_element.get('data-src', cover_element.get('src')))
 
-            model = self.model.objects.create(**params)
+            model = Preview.objects.create(**params)
             model.cover_url = self.cover_url % cover_name
             model.save()
 
@@ -122,7 +119,7 @@ class MonthlyParser(Parser):
         description_url = 'https://previewsworld.com/catalog/%s'
 
         def postload(self):
-            description_page = requests.get(self.description_url % self.model.diamond_id)
+            description_page = requests.get(self.description_url % self.instance.diamond_id)
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
             text_container = description_soup.find('div', {'class': 'Text'})
@@ -149,21 +146,21 @@ class MonthlyParser(Parser):
                     release_date = None
 
                 try:
-                    self.model.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
+                    self.instance.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
                 except (ValueError, AttributeError):
-                    self.model.release_date = None
+                    self.instance.release_date = None
 
-                self.model.description = text_container.text.strip()
+                self.instance.description = text_container.text.strip()
 
-                self.model.save()
+                self.instance.save()
 
-            return self.model.description
+            return self.instance.description
 
         def is_dummy(self, url):
             temp_path = os.path.join(MEDIA_ROOT, 'previews/temp')
 
             temp = open(temp_path, 'wb')
-            print(url)
+
             temp.write(requests.get(url).content)
             temp.close()
 
@@ -178,15 +175,15 @@ class MonthlyParser(Parser):
             return res
 
         def store_cover(self):
-            response = self.capella.upload_url(self.model.cover_url)
+            response = self.capella.upload_url(self.instance.cover_url)
 
             if response['success']:
                 print(response)
                 self.capella.resize(self.vendor_dummy_width, self.vendor_dummy_height)
 
                 if self.is_dummy(self.capella.get_url()):
-                    self.model.cover_url = self.dummy
+                    self.instance.cover_url = self.dummy
                 else:
-                    self.model.cover_url = response['url']
+                    self.instance.cover_url = response['url']
 
-                self.model.save()
+                self.instance.save()
