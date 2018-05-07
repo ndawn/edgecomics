@@ -15,6 +15,8 @@ AUTO_LOGOUT = 52560000
 
 
 INSTALLED_APPS = [
+    'jet.dashboard',
+    'jet',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
