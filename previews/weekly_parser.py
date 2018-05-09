@@ -7,7 +7,7 @@ import re
 from previews.models import Preview
 from previews.parser import Parser
 from edgecomics.config import SITE_ADDRESS
-from commerce.models import DEFAULT_WEIGHT, Publisher, PriceMap
+from commerce.models import Publisher, PriceMap
 
 from bs4 import BeautifulSoup
 import requests
@@ -15,11 +15,6 @@ import demjson
 
 
 class WeeklyParser(Parser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._set_date()
-
     parse_url = 'http://midtowncomics.com/store/ajax_wr_online.asp'
     publishers = filter(lambda x: getattr(x, 'load_weekly'), Publisher.objects.all())
     release_date_wdate = ''
@@ -55,13 +50,9 @@ class WeeklyParser(Parser):
         else:
             self._date_from_soup()
 
-    @staticmethod
-    def _convert_response(response):
-        return demjson.decode(response)
-
     def _request_entries(self, publisher):
         raw = requests.get(self.parse_url, {'cat': publisher.midtown_code, 'wdate': self.release_date_wdate}).text
-        return WeeklyParser._convert_response(raw)
+        return demjson.decode(raw)
 
     def _date_from_soup(self):
         date_page = requests.get('http://midtowncomics.com/store/weeklyreleasebuy.asp')
@@ -111,21 +102,12 @@ class WeeklyParser(Parser):
             instance.cover_url = url
             instance.save()
 
-            self.parsed.append(instance.id)
-
-    def parse(self):
-        if self.release_date is None:
-            self._date_from_soup()
-
-        self._delete_old()
-
-        for publisher in self.publishers:
-            self._parse_by_publisher(publisher)
+            self.producer.send({'preview_id': instance.id})
 
     class OneParser(Parser.OneParser):
         description_url = 'http://midtowncomics.com/store/dp.asp'
 
-        def postload(self):
+        def postparse(self):
             description_page = requests.get(self.description_url, {'PRID': self.instance.midtown_id})
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
@@ -140,8 +122,6 @@ class WeeklyParser(Parser):
                 self.instance.diamond_id = diamond_container.text[:9]
 
             self.instance.save()
-
-            return self.instance.description
 
         def store_cover(self):
             if self.instance.cover_url.startswith(SITE_ADDRESS):

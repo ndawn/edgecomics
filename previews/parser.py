@@ -6,6 +6,7 @@ import time
 from previews.models import Preview
 from edgecomics.config import SITE_ADDRESS
 from edgecomics.settings import MEDIA_ROOT
+from util.queues import Producer
 
 from pycapella import Capella
 
@@ -15,17 +16,21 @@ class Parser:
         self.release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d') if release_date is not None else None
         self.session = int(time.time())
 
+        self.producer = Producer('parse')
+
+        self._set_date()
+
     def __del__(self):
         locale.setlocale(locale.LC_TIME, '')
 
+    publishers = None
     parse_url = ''
     parse_engine = 'lxml'
 
     cover_urls = {}
 
-    parsed = []
-
-    model = Preview
+    def _set_date(self):
+        pass
 
     def _process_title(self, title):
         pass
@@ -34,10 +39,19 @@ class Parser:
         pass
 
     def _delete_old(self):
-        self.model.objects.filter(release_date=self.release_date).delete()
+        Preview.objects.filter(release_date=self.release_date).delete()
 
-    def parse(self):
+    def _parse_by_publisher(self, publisher):
         pass
+
+    def queue(self):
+        if self.release_date is None:
+            self._date_from_soup()
+
+        self._delete_old()
+
+        for publisher in self.publishers:
+            self._parse_by_publisher(publisher)
 
     class OneParser:
         def __init__(self, instance, vendor_dummy):

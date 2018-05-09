@@ -1,5 +1,4 @@
 import os.path
-import locale
 import datetime
 import re
 
@@ -17,9 +16,7 @@ class MonthlyParser(Parser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._set_date()
-
-        locale.setlocale(locale.LC_TIME, 'en_GB.UTF-8')
+        self._make_soup()
 
     parse_url = 'https://previewsworld.com/catalog'
     publishers = filter(lambda x: getattr(x, 'load_monthly'), Publisher.objects.all())
@@ -29,7 +26,7 @@ class MonthlyParser(Parser):
     cover_url = 'https://previewsworld.com/siteimage/catalogimage/%s?type=1'
 
     def _process_title(self, title):
-        def abbrs(word, **kwargs):
+        def abbrs(word):
             if word in ('TP', 'HC'):
                 return word
 
@@ -46,7 +43,8 @@ class MonthlyParser(Parser):
             self.release_date_batch = self.release_date.strftime('%b%y')
 
     def _delete_old(self):
-        Preview.objects.filter(mode='monthly', release_date__month=self.release_date.month).delete()  #TODO: rewrite
+        Preview.objects.filter(mode='monthly', release_date__month=self.release_date.month).delete()
+        # TODO: rewrite
 
     def _make_soup(self):
         self.page = requests.get(self.parse_url, {'batch': self.release_date_batch})
@@ -98,27 +96,16 @@ class MonthlyParser(Parser):
             cover_element = entry.find('div', {'class': 'nrGalleryItemImage'}).a.img
             cover_name = os.path.basename(cover_element.get('data-src', cover_element.get('src')))
 
-            model = Preview.objects.create(**params)
-            model.cover_url = self.cover_url % cover_name
-            model.save()
+            instance = Preview.objects.create(**params)
+            instance.cover_url = self.cover_url % cover_name
+            instance.save()
 
-            self.parsed.append(model.id)
-
-    def parse(self):
-        self._make_soup()
-
-        if self.release_date is None:
-            self._date_from_soup()
-
-        self._delete_old()
-
-        for publisher in self.publishers:
-            self._parse_by_publisher(publisher)
+            self.producer.send({'preview_id': instance.id})
 
     class OneParser(Parser.OneParser):
         description_url = 'https://previewsworld.com/catalog/%s'
 
-        def postload(self):
+        def postparse(self):
             description_page = requests.get(self.description_url % self.instance.diamond_id)
             description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
@@ -178,7 +165,6 @@ class MonthlyParser(Parser):
             response = self.capella.upload_url(self.instance.cover_url)
 
             if response['success']:
-                print(response)
                 self.capella.resize(self.vendor_dummy_width, self.vendor_dummy_height)
 
                 if self.is_dummy(self.capella.get_url()):

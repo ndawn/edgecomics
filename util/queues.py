@@ -3,7 +3,7 @@ import json
 import pika
 
 
-class Sender:
+class Producer:
     def __init__(self, queue):
         self.queue = queue
         self.connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
