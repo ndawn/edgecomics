@@ -2,6 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.views import View
+from django.middleware.csrf import get_token as get_csrf_token
 from edgecomics.config import SITE_ADDRESS, HAWK_TOKEN
 from previews.models import Preview
 from previews.monthly_parser import MonthlyParser
@@ -39,7 +40,7 @@ def hawk_catch(cls):
 @hawk_catch
 class ParseView(View):
     def get(self, request):
-        return JsonResponse({})
+        return JsonResponse({'csrfmiddlewaretoken': get_csrf_token(request)})
 
     def post(self, request):
         mode = request.POST.get('mode')
@@ -92,7 +93,11 @@ class ParseView(View):
 @hawk_catch
 class VKView(View):
     def get(self, request):
-        return JsonResponse({'groups': VKUploader.list_groups(), 'dates': Preview.list_dates()})
+        return JsonResponse({
+            'groups': VKUploader.list_groups(),
+            'dates': Preview.list_dates(),
+            'csrfmiddlewaretoken': get_csrf_token(request),
+        })
 
     def post(self, request):
         group_id = request.POST.get('group_id')
@@ -118,7 +123,10 @@ class VKView(View):
 @hawk_catch
 class PriceView(View):
     def get(self, request):
-        return JsonResponse({'dates': Preview.list_dates()})
+        return JsonResponse({
+            'dates': Preview.list_dates(),
+            'csrfmiddlewaretoken': get_csrf_token(request),
+        })
 
     def post(self, request):
         mode = request.GET.get('mode')
