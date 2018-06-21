@@ -53,6 +53,8 @@ class Parser:
         for publisher in self.publishers:
             self._parse_by_publisher(publisher)
 
+        self.producer.send({'instance_id': 0})
+
     class OneParser:
         def __init__(self, instance, vendor_dummy):
             self.instance = instance

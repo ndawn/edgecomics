@@ -26,3 +26,4 @@ urllib3==1.22
 vk==2.0.2
 wcwidth==0.1.7
 XlsxWriter==1.0.2
+django-jet==1.0.7
