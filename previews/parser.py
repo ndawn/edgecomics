@@ -1,20 +1,29 @@
-import os
 import locale
 import datetime
 import time
 
 from previews.models import Preview
-from edgecomics.config import SITE_ADDRESS
+from edgecomics import config
 from edgecomics.settings import MEDIA_ROOT
 from util.queues import Producer
 
-from pycapella import Capella
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+
+
+cloudinary.config(
+    api_key=config.CLOUDINARY_API_KEY,
+    api_secret=config.CLOUDINARY_API_SECRET,
+    cloud_name=config.CLOUDINARY_CLOUD_NAME,
+)
 
 
 class Parser:
     def __init__(self, release_date=None):
         self.release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d') if release_date is not None else None
         self.session = int(time.time())
+        self.count = 0
 
         self.producer = Producer('parse')
 
@@ -53,18 +62,40 @@ class Parser:
         for publisher in self.publishers:
             self._parse_by_publisher(publisher)
 
-        self.producer.send({'instance_id': 0})
+        return self.count
 
-    class OneParser:
-        def __init__(self, instance, vendor_dummy):
-            self.instance = instance
-            self.parse_engine = 'lxml'
 
-            self.capella = Capella()
+class SingleItemParser:
+    def __init__(self, instance):
+        self.instance = instance
+        self.parse_engine = 'lxml'
 
-            self.dummy_url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
-            self.vendor_dummy_path = os.path.join(MEDIA_ROOT, 'previews', vendor_dummy[0])
-            self.vendor_dummy_width = vendor_dummy[1]
-            self.vendor_dummy_height = vendor_dummy[2]
+    dummy_vendor = ''
 
-        dummy = 'https://capella.pics/47ffad88-8545-4c0c-8c7b-fe2c648e4024'
+    def store_cover(self):
+        try:
+            image_data = cloudinary.uploader.upload(
+                self.instance.cover_origin,
+                folder='cover',
+                phash=True,
+            )
+
+            phash_distance = int(image_data['phash'], base=16) ^ int(config.DUMMY[self.dummy_vendor]['phash'], base=16)
+            phash_identity = 1 - bin(phash_distance).count('1') / 64
+
+            print()
+            print('phash_identity:', phash_identity)
+
+            if phash_identity > 0.98:
+                cloudinary.uploader.destroy(image_data['public_id'])
+                self.instance.cover = None
+            else:
+                self.instance.cover = image_data['public_id']
+        except cloudinary.api.Error:
+            self.instance.cover = config.DUMMY['edge']['id']
+
+        self.instance.save()
+
+        print(self.instance.cover)
+
+        return self.instance.cover

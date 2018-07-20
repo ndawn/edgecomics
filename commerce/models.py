@@ -1,5 +1,17 @@
 from django.db import models, IntegrityError
 from accounts.models import User
+from edgecomics import config
+
+import cloudinary
+import cloudinary.uploader
+
+
+cloudinary.config(
+    api_key=config.CLOUDINARY_API_KEY,
+    api_secret=config.CLOUDINARY_API_SECRET,
+    cloud_name=config.CLOUDINARY_CLOUD_NAME,
+    format='png',
+)
 
 
 DEFAULT_WEIGHT = 100
@@ -301,11 +313,11 @@ class Item(models.Model):
         verbose_name='Вес',
     )
 
-    cover_url = models.URLField(
-        default='',
+    cover_id = models.CharField(
         null=True,
         blank=True,
-        verbose_name='Адрес обложки',
+        max_length=256,
+        verbose_name='ID обложки',
     )
 
     active = models.BooleanField(
@@ -326,6 +338,28 @@ class Item(models.Model):
         verbose_name='Обновлен',
     )
 
+    cover = property()
+
+    @cover.getter
+    def cover(self):
+        return {
+            **{
+                size: cloudinary.CloudinaryImage(self.cover_id).build_url(transformation=config.SIZES[size])
+                for size in config.SIZES
+            },
+            'full': cloudinary.CloudinaryImage(self.cover_id).url,
+        }
+
+    @cover.setter
+    def cover(self, cover_id):
+        if cover_id is None:
+            cloudinary.uploader.destroy(self.cover_id)
+            self.cover_id = config.DUMMY['edge']['id']
+        elif isinstance(cover_id, str):
+            self.cover_id = cover_id
+        else:
+            raise TypeError('cover_id must be string or None')
+
     def as_dict(self):
         return {
             'id': self.id,
@@ -336,7 +370,7 @@ class Item(models.Model):
             'price': self.price,
             'quantity': self.quantity,
             'weight': self.weight,
-            'cover_url': self.cover_url,
+            'cover': self.cover,
         }
 
     def __str__(self):

@@ -3,7 +3,7 @@ import datetime
 import re
 
 from previews.models import Preview
-from previews.parser import Parser
+from previews.parser import Parser, SingleItemParser as _SingleItemParser
 from edgecomics.settings import MEDIA_ROOT
 from commerce.models import Publisher, PriceMap
 
@@ -26,7 +26,7 @@ class MonthlyParser(Parser):
     cover_url = 'https://previewsworld.com/siteimage/catalogimage/%s?type=1'
 
     def _process_title(self, title):
-        def abbrs(word):
+        def abbrs(word, *args, **kwargs):
             if word in ('TP', 'HC'):
                 return word
 
@@ -97,79 +97,52 @@ class MonthlyParser(Parser):
             cover_name = os.path.basename(cover_element.get('data-src', cover_element.get('src')))
 
             instance = Preview.objects.create(**params)
-            instance.cover_url = self.cover_url % cover_name
+            instance.cover_origin = self.cover_url % cover_name
             instance.save()
 
             self.producer.send({'preview_id': instance.id})
 
-    class OneParser(Parser.OneParser):
-        description_url = 'https://previewsworld.com/catalog/%s'
+            self.count += 1
 
-        def postparse(self):
-            description_page = requests.get(self.description_url % self.instance.diamond_id)
-            description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-            text_container = description_soup.find('div', {'class': 'Text'})
+class SingleItemParser(_SingleItemParser):
+    description_url = 'https://previewsworld.com/catalog/%s'
+    dummy_vendor = 'prwld'
 
-            if text_container is not None:
-                try:
-                    text_container.find('div', {'class': 'ItemCode'}).decompose()
-                except AttributeError:
-                    pass
+    def postparse(self):
+        description_page = requests.get(self.description_url % self.instance.diamond_id)
+        description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-                try:
-                    text_container.find('div', {'class': 'Creators'}).decompose()
-                except AttributeError:
-                    pass
+        text_container = description_soup.find('div', {'class': 'Text'})
 
-                try:
-                    text_container.find('div', {'class': 'SRP'}).decompose()
-                except AttributeError:
-                    pass
+        if text_container is not None:
+            try:
+                text_container.find('div', {'class': 'ItemCode'}).decompose()
+            except AttributeError:
+                pass
 
-                try:
-                    release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
-                except AttributeError:
-                    release_date = None
+            try:
+                text_container.find('div', {'class': 'Creators'}).decompose()
+            except AttributeError:
+                pass
 
-                try:
-                    self.instance.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
-                except (ValueError, AttributeError):
-                    self.instance.release_date = None
+            try:
+                text_container.find('div', {'class': 'SRP'}).decompose()
+            except AttributeError:
+                pass
 
-                self.instance.description = text_container.text.strip()
+            try:
+                release_date = text_container.find('div', {'class': 'ReleaseDate'}).extract().text.strip()
+            except AttributeError:
+                release_date = None
 
-                self.instance.save()
+            try:
+                self.instance.release_date = datetime.datetime.strptime(release_date, 'In Shops: %b %d, %Y')
+            except (ValueError, AttributeError):
+                self.instance.release_date = None
 
-            return self.instance.description
+            self.instance.description = text_container.text.strip()
 
-        def is_dummy(self, url):
-            temp_path = os.path.join(MEDIA_ROOT, 'previews/temp')
+            self.instance.save()
 
-            temp = open(temp_path, 'wb')
-
-            temp.write(requests.get(url).content)
-            temp.close()
-
-            temp = open(temp_path, 'rb')
-            dummy = open(self.vendor_dummy_path, 'rb')
-
-            res = temp.read() == dummy.read()
-
-            temp.close()
-            dummy.close()
-
-            return res
-
-        def store_cover(self):
-            response = self.capella.upload_url(self.instance.cover_url)
-
-            if response['success']:
-                self.capella.resize(self.vendor_dummy_width, self.vendor_dummy_height)
-
-                if self.is_dummy(self.capella.get_url()):
-                    self.instance.cover_url = self.dummy
-                else:
-                    self.instance.cover_url = response['url']
-
-                self.instance.save()
+        return self.instance.description

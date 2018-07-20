@@ -56,6 +56,13 @@ class Preview(Item):
         verbose_name='Код Midtown',
     )
 
+    cover_origin = models.URLField(
+        default='',
+        null=True,
+        blank=True,
+        verbose_name='Оригинальнаый адрес обложки'
+    )
+
     @staticmethod
     def list_dates():
         dates = []

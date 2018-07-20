@@ -19,8 +19,8 @@ class VKUploader:
         self.api = VKUploader.api()
         self.producer = Producer('vk')
 
-        if options is not None:
-            self.msg_link = options.get('msg_link', 'https://vk.me/-%s' % group_id)
+        if options is not None and options.get('msg_link'):
+            self.msg_link = options.get('msg_link')
         else:
             self.msg_link = 'https://vk.me/-%s' % group_id
 
@@ -43,9 +43,13 @@ class VKUploader:
         return VKUploader.api().groups.get(filter='admin', extended=1)['items']
 
     def queue(self):
+        preview_count = 0
+
         locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
         for publisher in Publisher.objects.all():
+            time.sleep(0.35)
+
             def correct(d):
                 return d + 'а' if d.endswith('т') else d[:-1] + 'я'
 
@@ -53,8 +57,6 @@ class VKUploader:
                 album_date = self.release_date.strftime('%B')
             else:
                 album_date = self.release_date.strftime('%d ') + correct(self.release_date.strftime('%B').lower())
-
-            time.sleep(0.333333333)
 
             album = self.api.photos.createAlbum(
                 title='Предзаказы %s %s' % (publisher.short_name, album_date),
@@ -70,16 +72,16 @@ class VKUploader:
             previews = Preview.objects.filter(session=self.session, publisher=publisher)
 
             for preview in previews:
-                caption = '\n'.join([
-                    preview.title + ' – ' + str(int(preview.discount * preview.price)) + ' рублей',
-                    'Дата выхода: ' + preview.release_date.strftime('%-d ') +
-                    correct(preview.release_date.strftime('%B').lower()),
-                    'Для покупки писать: ' + self.msg_link,
-                    ])
+                caption = '%s – %d рублей\nДата выхода: %s\nДля покупки писать: %s' % (
+                    preview.title,
+                    preview.price_map.discount,
+                    preview.release_date.strftime('%-d ') + correct(preview.release_date.strftime('%B').lower()),
+                    self.msg_link,
+                )
 
                 self.producer.send({
+                    'id': preview.id,
                     'cover': {
-                        'preview_id': preview.id,
                         'group_id': self.group_id,
                         'upload_url': upload_server['upload_url'],
                         'caption': caption,
@@ -87,19 +89,20 @@ class VKUploader:
                     'title': preview.title,
                 })
 
+                preview_count += 1
+
         locale.setlocale(locale.LC_TIME, '')
+
+        return preview_count
 
     @staticmethod
     def upload(cover):
         preview = Preview.objects.get(id=cover['preview_id'])
 
-        file_path = os.path.join(VKUploader.local_path, 'file0.jpg')
+        file_path = os.path.join(VKUploader.local_path, 'file0.png')
 
         file = open(file_path, 'wb')
-        file.write(requests.get(os.path.join(
-            preview.cover_url,
-            ('resize/400' if preview.cover_url.startswith('https://capella.pics') else '')
-        )).content)
+        file.write(requests.get(preview.cover['lg']).content)
         file.close()
 
         file = open(file_path, 'rb')
@@ -116,13 +119,6 @@ class VKUploader:
 
         return {
             'success': True,
-            'photos_list': {
-                'photo_75': photo['photo_75'],
-                'photo_130': photo['photo_130'],
-                'photo_604': photo['photo_604'],
-                'photo_807': photo['photo_807'],
-                'photo_1280': photo['photo_1280'],
-                'photo_2560': photo['photo_2560'],
-            },
+            'photo': photo,
             'title': preview.title,
         }

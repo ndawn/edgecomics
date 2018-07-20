@@ -3,10 +3,11 @@ import json
 from django.http import JsonResponse, HttpResponseServerError
 from django.views import View
 from django.views.decorators.csrf import get_token
+from util.queues import Consumer
 from edgecomics.config import SITE_ADDRESS, HAWK_TOKEN
 from previews.models import Preview
-from previews.monthly_parser import MonthlyParser
-from previews.weekly_parser import WeeklyParser
+from previews.monthly_parser import MonthlyParser, SingleItemParser as SingleMonthlyItemParser
+from previews.weekly_parser import WeeklyParser, SingleItemParser as SingleWeeklyItemParser
 from previews.vk_uploader import VKUploader
 from previews.xls_generator import XLSGenerator
 
@@ -41,7 +42,44 @@ def hawk_catch(cls):
 @hawk_catch
 class ParseView(View):
     def get(self, request):
-        return JsonResponse({'csrfmiddlewaretoken': get_token(request)})
+        if not request.path.endswith('/next/'):
+            return JsonResponse({'csrfmiddlewaretoken': get_token(request)})
+        else:
+            mode = request.GET.get('mode')
+
+            if mode is None:
+                return JsonResponse({'success': False, 'message': 'no mode specified'})
+
+            if mode == 'monthly':
+                parser = SingleMonthlyItemParser
+            elif mode == 'weekly':
+                parser = SingleWeeklyItemParser
+            else:
+                return JsonResponse({'success': False, 'message': 'wrong mode: %s' % request.GET.get('mode')})
+
+            consumed = Consumer('parse').get()
+
+            if consumed is not None:
+                parser = parser(
+                    Preview.objects.get(
+                        pk=consumed['preview_id']
+                    )
+                )
+            else:
+                return JsonResponse({
+                    'success': True,
+                    'cover': None,
+                    'title': None,
+                })
+
+            parser.postparse()
+            cover = parser.store_cover()
+
+            return JsonResponse({
+                'success': True,
+                'cover': cover,
+                'title': parser.instance.title,
+            })
 
     def post(self, request):
         mode = request.POST.get('mode')
@@ -55,40 +93,9 @@ class ParseView(View):
 
         parser = parser(request.POST.get('release_date'))
 
-        parser.queue()
+        preview_count = parser.queue()
 
-        return JsonResponse({'success': True, 'session': parser.session})
-
-    def put(self, request):
-        mode = request.POST.get('mode')
-
-        if mode is None:
-            return JsonResponse({'success': False, 'message': 'no mode specified'})
-
-        if mode == 'monthly':
-            parser = MonthlyParser
-            dummy_specs = ('dummy_prwld.png', 120, 180)
-        elif mode == 'weekly':
-            parser = WeeklyParser
-            dummy_specs = ('dummy_mdtwn.jpg', 300, 462)
-        else:
-            return JsonResponse({'success': False, 'message': 'wrong mode: %s' % request.GET.get('mode')})
-
-        parser = parser.OneParser(
-            Preview.objects.get(id=request.POST.get('id')),
-            dummy_specs,
-        )
-
-        parser.postparse()
-        parser.store_cover()
-        parser.capella.resize(120)
-        thumb = parser.capella.get_url()
-
-        return JsonResponse({
-            'success': True,
-            'cover': thumb,
-            'title': parser.instance.title
-        })
+        return JsonResponse({'success': True, 'session': parser.session, 'count': preview_count})
 
 
 @hawk_catch
@@ -108,9 +115,9 @@ class VKView(View):
             return JsonResponse({'success': False, 'message': 'no group id or session specified'})
 
         uploader = VKUploader(group_id, session, options={'msg_link': request.POST.get('msg_link')})
-        uploader.queue()
+        preview_count = uploader.queue()
 
-        return JsonResponse({'success': True})
+        return JsonResponse({'success': True, 'count': preview_count})
 
     def put(self, request):
         try:

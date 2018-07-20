@@ -60,7 +60,7 @@ class XLSGenerator:
         ('Наличие', '0'),
         ('Вход', 'entry.price_map.bought'),
         ('Цена', 'entry.price_map.discount'),
-        ('Ссылка', 'cover_url'),
+        ('Ссылка', 'entry.cover["full"]'),
         ('Вес', 'weight'),
     ]
 

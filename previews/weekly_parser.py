@@ -5,8 +5,8 @@ import json
 import re
 
 from previews.models import Preview
-from previews.parser import Parser
-from edgecomics.config import SITE_ADDRESS
+from previews.parser import Parser, SingleItemParser as _SingleItemParser
+from edgecomics import config
 from commerce.models import Publisher, PriceMap
 
 from bs4 import BeautifulSoup
@@ -93,44 +93,31 @@ class WeeklyParser(Parser):
             params['price'] = price_map.default
             params['weight'] = price_map.weight
 
-            if json.loads(entry['xl']) is True:
-                url = self.cover_url % params['midtown_id']
-            else:
-                url = os.path.join(SITE_ADDRESS, 'media/previews/dummy.jpg')
-
             instance = Preview.objects.create(**params)
-            instance.cover_url = url
+            instance.cover_origin = self.cover_url % params['midtown_id']
             instance.save()
 
             self.producer.send({'preview_id': instance.id})
 
-    class OneParser(Parser.OneParser):
-        description_url = 'http://midtowncomics.com/store/dp.asp'
+            self.count += 1
 
-        def postparse(self):
-            description_page = requests.get(self.description_url, {'PRID': self.instance.midtown_id})
-            description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-            description_element = description_soup.find('p', {'class': 'shorten'})
+class SingleItemParser(_SingleItemParser):
+    description_url = 'http://midtowncomics.com/store/dp.asp'
+    dummy_vendor = 'mdtwn'
 
-            if description_element is not None:
-                self.instance.description = description_element.text
+    def postparse(self):
+        description_page = requests.get(self.description_url, {'PRID': self.instance.midtown_id})
+        description_soup = BeautifulSoup(description_page.text, self.parse_engine)
 
-            diamond_container = description_soup.find('span', {'id': 'diamond_container'})
+        description_element = description_soup.find('p', {'class': 'shorten'})
 
-            if diamond_container is not None:
-                self.instance.diamond_id = diamond_container.text[:9]
+        if description_element is not None:
+            self.instance.description = description_element.text
 
-            self.instance.save()
+        diamond_container = description_soup.find('span', {'id': 'diamond_container'})
 
-        def store_cover(self):
-            if self.instance.cover_url.startswith(SITE_ADDRESS):
-                self.instance.cover_url = self.dummy
-                self.instance.save()
-                return
+        if diamond_container is not None:
+            self.instance.diamond_id = diamond_container.text[:9]
 
-            response = self.capella.upload_url(self.instance.cover_url)
-
-            if response['success']:
-                self.instance.cover_url = response['url']
-                self.instance.save()
+        self.instance.save()
