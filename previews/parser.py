@@ -7,16 +7,8 @@ from edgecomics import config
 from edgecomics.settings import MEDIA_ROOT
 from util.queues import Producer
 
-import cloudinary
 import cloudinary.api
 import cloudinary.uploader
-
-
-cloudinary.config(
-    api_key=config.CLOUDINARY_API_KEY,
-    api_secret=config.CLOUDINARY_API_SECRET,
-    cloud_name=config.CLOUDINARY_CLOUD_NAME,
-)
 
 
 class Parser:
@@ -78,6 +70,7 @@ class SingleItemParser:
                 self.instance.cover_origin,
                 folder='cover',
                 phash=True,
+                config=config.CLOUDINARY_CONFIG,
             )
 
             phash_distance = int(image_data['phash'], base=16) ^ int(config.DUMMY[self.dummy_vendor]['phash'], base=16)
@@ -87,7 +80,7 @@ class SingleItemParser:
             print('phash_identity:', phash_identity)
 
             if phash_identity > 0.98:
-                cloudinary.uploader.destroy(image_data['public_id'])
+                cloudinary.uploader.destroy(image_data['public_id'], config=config.CLOUDINARY_CONFIG)
                 self.instance.cover = None
             else:
                 self.instance.cover = image_data['public_id']
