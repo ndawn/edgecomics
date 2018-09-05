@@ -37,7 +37,11 @@ class Consumer(AMQPClient):
             self.channel.basic_ack(message[0].delivery_tag)
 
             try:
-                return json.loads(message[2])
+                if type(message[2]).__name__ == 'bytes':
+                    msg = message[2].decode('utf-8')
+                else:
+                    msg = message[2]
+                return json.loads(msg)
             except json.JSONDecodeError:
                 return message[2]
         else:
