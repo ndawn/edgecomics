@@ -2,7 +2,7 @@ from django.db import models
 from commerce.models import Item, PriceMap
 
 
-class Preview(Item):
+class Preview(models.Model):
     class Meta:
         verbose_name = 'Предзаказ'
         verbose_name_plural = 'Предзаказы'
@@ -11,7 +11,15 @@ class Preview(Item):
         'monthly': 'Месяц',
         'weekly': 'Неделя',
     }
-    
+
+    # item = models.ForeignKey(
+    #     Item,
+    #     on_delete=models.CASCADE,
+    #     null=True,
+    #     blank=True,
+    #     verbose_name='Товар',
+    # )
+
     mode = models.CharField(
         null=True,
         max_length=8,

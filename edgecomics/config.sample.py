@@ -1,5 +1,13 @@
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 import cloudinary
 
+
+SENTRY_TOKEN = ''
+SENTRY = sentry_sdk.init(
+    dsn='',
+    integrations=[DjangoIntegration()]
+)
 
 DB = {
     'ENGINE': '',
@@ -19,8 +27,6 @@ ALLOWED_HOSTS = []
 DEBUG = False
 
 SESSION_COOKIE_SECURE = True
-
-HAWK_TOKEN = ''
 
 VK_ACCESS_TOKEN = ''
 VK_API_VERSION = ''
@@ -45,15 +51,15 @@ SIZES = {
 
 DUMMY = {
     'edge': {
-        'id': 'cover/dummy',
+        'id': 'dummy/dummy',
         'phash': 'cb879fb45c91f00c',
     },
     'prwld': {
-        'id': 'cover/prwld_dummy',
+        'id': 'dummy/prwld_dummy',
         'phash': 'cef1fc934c80f229',
     },
     'mdtwn': {
-        'id': 'cover/mdtwn_dummy',
+        'id': 'dummy/mdtwn_dummy',
         'phash': '903d0cbc3170efcb',
     },
 }
