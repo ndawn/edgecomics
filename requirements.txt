@@ -24,7 +24,7 @@ psycopg2-binary==2.7.4
 pycapella==0.1.5
 Pygments==2.2.0
 pytz==2017.3
-requests==2.18.4
+requests==2.20.0
 sentry-sdk==0.6.6
 six==1.11.0
 titlecase==0.12.0
