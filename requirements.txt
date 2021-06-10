@@ -7,7 +7,7 @@ chardet==3.0.4
 cloudinary==1.12.0
 curtsies==0.2.11
 demjson==2.2.4
-Django==2.0.2
+Django==2.2.24
 django-jet==1.0.7
 docutils==0.14
 greenlet==0.4.12
